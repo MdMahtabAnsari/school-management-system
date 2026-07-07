@@ -1,0 +1,38 @@
+{
+  "name": "@workspace/db",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "build": "tsc",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev",
+    "db:deploy": "prisma migrate deploy"
+  },
+  "type": "module",
+  "devDependencies": {
+    "@types/pg": "^8.20.0",
+    "@workspace/typescript-config": "workspace:*",
+    "prisma": "^7.8.0",
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "@prisma/adapter-pg": "^7.8.0",
+    "@prisma/client": "^7.8.0",
+    "dotenv": "^17.4.2",
+    "pg": "^8.22.0"
+  },
+  "exports": {
+    "./generated/prisma/*": {
+      "types": "./src/generated/prisma/*.ts",
+      "default": "./dist/generated/prisma/*.js"
+    },
+    "./nestjs": {
+      "types": "./src/nestjs/client.ts",
+      "default": "./dist/nestjs/client.js"
+    },
+    "./nextjs": {
+      "types": "./src/nextjs/client.ts",
+      "default": "./dist/nextjs/client.js"
+    }
+  }
+}

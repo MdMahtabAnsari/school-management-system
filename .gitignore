@@ -1,0 +1,79 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# Dependencies
+node_modules/
+.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# Build output
+.next/
+out/
+dist/
+build/
+.turbo/
+
+# Testing
+coverage/
+.nyc_output/
+
+# Environment files
+.env*
+!.env.example
+
+# Vercel
+.vercel/
+
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# Runtime data
+pids/
+*.pid
+*.pid.lock
+*.seed
+
+# Temporary files
+.temp/
+.tmp/
+
+# IDEs & Editors
+.idea/
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+.project
+.classpath
+.settings/
+.c9/
+*.launch
+*.sublime-workspace
+
+# OS files
+.DS_Store
+
+# Misc
+*.pem
+
+# Diagnostic reports
+report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
+
+# Generated Prisma Client
+generated/prisma/*
