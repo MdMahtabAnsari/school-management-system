@@ -11,7 +11,7 @@ export const ac = createAccessControl(statements);
  * Super Admin
  * Full system access across all organizations.
  */
-export const superAdmin = ac.newRole({
+export const admin = ac.newRole({
   ...adminAc.statements,
 });
 

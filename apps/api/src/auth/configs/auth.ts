@@ -13,13 +13,13 @@ import {
   organization,
 } from 'better-auth/plugins';
 import { prisma } from '@workspace/db/nestjs';
-import { username as usernameSchema } from './common';
+import { username as usernameSchema } from '@/auth/configs/common';
 import {
-  superAdmin,
+  admin,
   schoolAdmin,
   user,
   ac,
-} from './permissions/admin.permission';
+} from '@/auth/configs/permissions/admin.permission';
 
 export const auth = betterAuth({
   database: prismaAdapter(prisma, {
@@ -31,19 +31,19 @@ export const auth = betterAuth({
   user: {
     changeEmail: {
       enabled: true,
-      sendChangeEmailVerification: async () => {},
+      sendChangeEmailVerification: async () => { },
     },
   },
   emailAndPassword: {
     requireEmailVerification: true,
     enabled: true,
-    sendResetPassword: async () => {},
+    sendResetPassword: async () => { },
   },
   emailVerification: {
-    sendVerificationEmail: async () => {},
+    sendVerificationEmail: async () => { },
     sendOnSignUp: true,
     autoSignInAfterVerification: true,
-    afterEmailVerification: async () => {},
+    afterEmailVerification: async () => { },
   },
   account: {
     accountLinking: {
@@ -53,13 +53,13 @@ export const auth = betterAuth({
   plugins: [
     bearer(),
     emailOTP({
-      async sendVerificationOTP() {},
+      async sendVerificationOTP() { },
     }),
     multiSession(),
     twoFactor({
       issuer: 'vaultkey',
       otpOptions: {
-        sendOTP: async () => {},
+        sendOTP: async () => { },
       },
     }),
     username({
@@ -68,20 +68,28 @@ export const auth = betterAuth({
       },
     }),
     magicLink({
-      sendMagicLink: async () => {},
+      sendMagicLink: async () => { },
     }),
     adminPlugin({
       defaultRole: 'user',
       ac,
       roles: {
-        superAdmin,
+        admin,
         schoolAdmin,
         user,
       },
     }),
     lastLoginMethod(),
     ...(process.env.NODE_ENV === 'development' ? [openAPI()] : []),
-    organization(),
+    organization({
+      dynamicAccessControl: {
+        enabled: true,
+      },
+      teams: {
+        enabled: true,
+
+      },
+    }),
   ],
   session: {
     cookieCache: {
@@ -94,10 +102,10 @@ export const auth = betterAuth({
     ...(process.env.TRUSTED_CLIENT_URL?.split(',') || []),
     ...(process.env.NODE_ENV === 'development'
       ? [
-          'exp://', // Trust all Expo URLs (prefix matching)
-          'exp://**', // Trust all Expo URLs (wildcard matching)
-          'exp://192.168.*.*:*/**', // Trust 192.168.x.x IP range with any port and path
-        ]
+        'exp://', // Trust all Expo URLs (prefix matching)
+        'exp://**', // Trust all Expo URLs (wildcard matching)
+        'exp://192.168.*.*:*/**', // Trust 192.168.x.x IP range with any port and path
+      ]
       : []),
   ],
   url: process.env.BETTER_AUTH_URL,

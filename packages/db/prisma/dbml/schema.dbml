@@ -1,0 +1,1931 @@
+//// ------------------------------------------------------
+//// THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+//// ------------------------------------------------------
+
+Table user {
+  id String [pk]
+  name String [not null]
+  email String [unique, not null]
+  emailVerified Boolean [not null, default: false]
+  image String
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  twoFactorEnabled Boolean [default: false]
+  username String [unique]
+  displayUsername String
+  role Role
+  banned Boolean [default: false]
+  banReason String
+  banExpires DateTime
+  sessions session [not null]
+  accounts account [not null]
+  twofactors twoFactor [not null]
+  teammembers teamMember [not null]
+  members member [not null]
+  invitations invitation [not null]
+  staffProfile staffProfile
+  guardianProfile guardian
+  studentProfile studentProfile
+  auditLogsActedBy auditLog [not null]
+}
+
+Table session {
+  id String [pk]
+  expiresAt DateTime [not null]
+  token String [unique, not null]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  ipAddress String
+  userAgent String
+  userId String [not null]
+  user user [not null]
+  impersonatedBy String
+  activeOrganizationId String
+  activeTeamId String
+}
+
+Table account {
+  id String [pk]
+  accountId String [not null]
+  providerId String [not null]
+  userId String [not null]
+  user user [not null]
+  accessToken String
+  refreshToken String
+  idToken String
+  accessTokenExpiresAt DateTime
+  refreshTokenExpiresAt DateTime
+  scope String
+  password String
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+}
+
+Table verification {
+  id String [pk]
+  identifier String [not null]
+  value String [not null]
+  expiresAt DateTime [not null]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+}
+
+Table twoFactor {
+  id String [pk]
+  secret String [not null]
+  backupCodes String [not null]
+  userId String [not null]
+  user user [not null]
+  verified Boolean [default: true]
+  failedVerificationCount Int [default: 0]
+  lockedUntil DateTime
+}
+
+Table organization {
+  id String [pk]
+  name String [not null]
+  slug String [unique, not null]
+  logo String
+  createdAt DateTime [not null]
+  metadata String
+  organizationroles organizationRole [not null]
+  teams team [not null]
+  members member [not null]
+  invitations invitation [not null]
+  campuses campus [not null]
+  gradeLevels gradeLevel [not null]
+  academicYears academicYear [not null]
+  classSections classSection [not null]
+  subjects subject [not null]
+  subjectGroups subjectGroup [not null]
+  timetables timetable [not null]
+  periods period [not null]
+  holidays holiday [not null]
+  studentProfiles studentProfile [not null]
+  enrollments studentEnrollment [not null]
+  guardians guardian [not null]
+  staffProfiles staffProfile [not null]
+  employeeRecords employeeRecord [not null]
+  attendanceRecords studentAttendance [not null]
+  staffAttendance staffAttendance [not null]
+  leaveRequests leaveRequest [not null]
+  examSessions examSession [not null]
+  examTypes examType [not null]
+  gradeScales gradeScale [not null]
+  feeStructures feeStructure [not null]
+  feeCategories feeCategory [not null]
+  invoices invoice [not null]
+  receipts receipt [not null]
+  routes transportRoute [not null]
+  vehicles vehicle [not null]
+  hostels hostel [not null]
+  hostelRooms hostelRoom [not null]
+  books book [not null]
+  bookIssues bookIssue [not null]
+  assets asset [not null]
+  vendors vendor [not null]
+  ledgerEntries ledgerEntry [not null]
+  salaryStructures salaryStructure [not null]
+  payslips payslip [not null]
+  notices notice [not null]
+  messageLogs messageLog [not null]
+  homeworkAssignments homework [not null]
+  lessonPlans lessonPlan [not null]
+  schoolEvents schoolEvent [not null]
+  disciplinaryRecords disciplinaryRecord [not null]
+  healthRecords healthRecord [not null]
+  documents documentRecord [not null]
+  apiTokens apiToken [not null]
+  auditLogs auditLog [not null]
+  houses house [not null]
+  clubs club [not null]
+  boards board [not null]
+}
+
+Table organizationRole {
+  id String [pk]
+  organizationId String [not null]
+  organization organization [not null]
+  role SchoolRole [not null]
+  permission String [not null]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime
+}
+
+Table team {
+  id String [pk]
+  name String [not null]
+  organizationId String [not null]
+  organization organization [not null]
+  createdAt DateTime [not null]
+  updatedAt DateTime
+  teammembers teamMember [not null]
+}
+
+Table teamMember {
+  id String [pk]
+  teamId String [not null]
+  team team [not null]
+  userId String [not null]
+  user user [not null]
+  createdAt DateTime
+}
+
+Table member {
+  id String [pk]
+  organizationId String [not null]
+  organization organization [not null]
+  userId String [not null]
+  user user [not null]
+  role SchoolRole [not null, default: 'STUDENT']
+  createdAt DateTime [not null]
+}
+
+Table invitation {
+  id String [pk]
+  organizationId String [not null]
+  organization organization [not null]
+  email String [not null]
+  role SchoolRole
+  teamId String
+  status String [not null, default: 'pending']
+  expiresAt DateTime [not null]
+  createdAt DateTime [default: `now()`, not null]
+  inviterId String [not null]
+  user user [not null]
+}
+
+Table board {
+  id String [pk]
+  name String [not null]
+  type BoardType [not null]
+  organizationId String
+  organization organization
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  gradeLevels gradeLevel [not null]
+
+  indexes {
+    (name, organizationId) [unique]
+  }
+}
+
+Table gradeLevel {
+  id String [pk]
+  organizationId String [not null]
+  organization organization [not null]
+  boardId String
+  board board
+  name String [not null]
+  sequence Int [not null]
+  stageLabel String
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  deletedAt DateTime
+  classSections classSection [not null]
+
+  indexes {
+    (organizationId, name) [unique]
+  }
+}
+
+Table academicYear {
+  id String [pk]
+  organizationId String [not null]
+  organization organization [not null]
+  name String [not null]
+  startDate DateTime [not null]
+  endDate DateTime [not null]
+  isCurrent Boolean [not null, default: false]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  deletedAt DateTime
+  terms term [not null]
+  classSections classSection [not null]
+  enrollments studentEnrollment [not null]
+  examSessions examSession [not null]
+  feeStructures feeStructure [not null]
+  holidays holiday [not null]
+  timetables timetable [not null]
+  staffLeaveYear leaveRequest [not null]
+
+  indexes {
+    (organizationId, name) [unique]
+  }
+}
+
+Table term {
+  id String [pk]
+  organizationId String [not null]
+  academicYearId String [not null]
+  academicYear academicYear [not null]
+  name String [not null]
+  startDate DateTime [not null]
+  endDate DateTime [not null]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  examSessions examSession [not null]
+
+  indexes {
+    (academicYearId, name) [unique]
+  }
+}
+
+Table campus {
+  id String [pk]
+  organizationId String [not null]
+  organization organization [not null]
+  name String [not null]
+  address String
+  isPrimary Boolean [not null, default: true]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  deletedAt DateTime
+  classSections classSection [not null]
+  hostels hostel [not null]
+}
+
+Table classSection {
+  id String [pk]
+  organizationId String [not null]
+  organization organization [not null]
+  academicYearId String [not null]
+  academicYear academicYear [not null]
+  gradeLevelId String [not null]
+  gradeLevel gradeLevel [not null]
+  campusId String
+  campus campus
+  name String [not null]
+  stream String
+  capacity Int [not null, default: 40]
+  currentCount Int [not null, default: 0]
+  classTeacherId String
+  classTeacher staffProfile
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  deletedAt DateTime
+  enrollments studentEnrollment [not null]
+  subjectGroups subjectGroup [not null]
+  timetableSlots timetableSlot [not null]
+  homework homework [not null]
+  lessonPlans lessonPlan [not null]
+
+  indexes {
+    (academicYearId, gradeLevelId, name) [unique]
+  }
+}
+
+Table subject {
+  id String [pk]
+  organizationId String [not null]
+  organization organization [not null]
+  name String [not null]
+  code String [not null]
+  isElective Boolean [not null, default: false]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  deletedAt DateTime
+  subjectGroupLinks subjectGroupSubject [not null]
+  timetableSlots timetableSlot [not null]
+  examSubjects examSubject [not null]
+  lessonPlans lessonPlan [not null]
+  homework homework [not null]
+
+  indexes {
+    (organizationId, code) [unique]
+  }
+}
+
+Table subjectGroup {
+  id String [pk]
+  organizationId String [not null]
+  organization organization [not null]
+  classSectionId String [not null]
+  classSection classSection [not null]
+  name String [not null]
+  isElectiveGroup Boolean [not null, default: false]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  subjects subjectGroupSubject [not null]
+}
+
+Table subjectGroupSubject {
+  id String [pk]
+  subjectGroupId String [not null]
+  subjectGroup subjectGroup [not null]
+  subjectId String [not null]
+  subject subject [not null]
+
+  indexes {
+    (subjectGroupId, subjectId) [unique]
+  }
+}
+
+Table period {
+  id String [pk]
+  organizationId String [not null]
+  organization organization [not null]
+  name String [not null]
+  startTime String [not null]
+  endTime String [not null]
+  sequence Int [not null]
+  timetableSlots timetableSlot [not null]
+
+  indexes {
+    (organizationId, sequence) [unique]
+  }
+}
+
+Table timetable {
+  id String [pk]
+  organizationId String [not null]
+  organization organization [not null]
+  academicYearId String [not null]
+  academicYear academicYear [not null]
+  name String [not null, default: 'Default Timetable']
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  slots timetableSlot [not null]
+}
+
+Table timetableSlot {
+  id String [pk]
+  timetableId String [not null]
+  timetable timetable [not null]
+  classSectionId String [not null]
+  classSection classSection [not null]
+  periodId String [not null]
+  period period [not null]
+  subjectId String
+  subject subject
+  teacherId String
+  teacher staffProfile
+  weekday Int [not null]
+
+  indexes {
+    (classSectionId, periodId, weekday) [unique]
+  }
+}
+
+Table holiday {
+  id String [pk]
+  organizationId String [not null]
+  organization organization [not null]
+  academicYearId String
+  academicYear academicYear
+  name String [not null]
+  date DateTime [not null]
+  isWorkingDay Boolean [not null, default: false]
+
+  indexes {
+    (organizationId, date) [unique]
+  }
+}
+
+Table studentProfile {
+  id String [pk]
+  organizationId String [not null]
+  organization organization [not null]
+  userId String [unique]
+  user user
+  admissionNumber String [not null]
+  firstName String [not null]
+  lastName String [not null]
+  dateOfBirth DateTime [not null]
+  gender Gender [not null]
+  bloodGroup BloodGroup [default: 'UNKNOWN']
+  nationalIdMasked String
+  category String
+  religion String
+  caste String
+  photoUrl String
+  previousSchool String
+  status StudentStatus [not null, default: 'ACTIVE']
+  admissionDate DateTime [default: `now()`, not null]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  deletedAt DateTime
+  createdBy String
+  updatedBy String
+  enrollments studentEnrollment [not null]
+  guardianLinks studentGuardian [not null]
+  documents studentDocument [not null]
+  emergencyContacts emergencyContact [not null]
+  medicalInfo studentMedicalInfo
+  healthRecords healthRecord [not null]
+  transportAssignments studentTransportAssignment [not null]
+  hostelAllocations hostelRoomAllocation [not null]
+  libraryCard libraryCard
+  attendanceRecords studentAttendance [not null]
+  examResults examResult [not null]
+  invoices invoice [not null]
+  feeDiscounts studentFeeDiscount [not null]
+  homeworkSubmissions homeworkSubmission [not null]
+  disciplinaryRecords disciplinaryRecord [not null]
+  houseMembership houseMembership
+  clubMemberships clubMembership [not null]
+  certificates certificate [not null]
+  siblingLinksAsPrimary siblingLink [not null]
+  siblingLinksAsSibling siblingLink [not null]
+
+  indexes {
+    (organizationId, admissionNumber) [unique]
+  }
+}
+
+Table studentEnrollment {
+  id String [pk]
+  organizationId String [not null]
+  organization organization [not null]
+  studentId String [not null]
+  student studentProfile [not null]
+  academicYearId String [not null]
+  academicYear academicYear [not null]
+  classSectionId String [not null]
+  classSection classSection [not null]
+  rollNumber String [not null]
+  status EnrollmentStatus [not null, default: 'ACTIVE']
+  enrolledAt DateTime [default: `now()`, not null]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  transferLogs sectionTransferLog [not null]
+  promotionsFrom studentPromotion [not null]
+  promotionsTo studentPromotion [not null]
+
+  indexes {
+    (classSectionId, rollNumber) [unique]
+    (studentId, academicYearId) [unique]
+  }
+}
+
+Table sectionTransferLog {
+  id String [pk]
+  enrollmentId String [not null]
+  enrollment studentEnrollment [not null]
+  fromClassSectionId String [not null]
+  toClassSectionId String [not null]
+  fromRollNumber String [not null]
+  toRollNumber String [not null]
+  reason String
+  transferredAt DateTime [default: `now()`, not null]
+  transferredBy String
+}
+
+Table studentPromotion {
+  id String [pk]
+  organizationId String [not null]
+  fromEnrollmentId String [not null]
+  fromEnrollment studentEnrollment [not null]
+  toEnrollmentId String
+  toEnrollment studentEnrollment
+  outcome EnrollmentStatus [not null]
+  remarks String
+  processedAt DateTime [default: `now()`, not null]
+}
+
+Table studentDocument {
+  id String [pk]
+  organizationId String [not null]
+  studentId String [not null]
+  student studentProfile [not null]
+  documentId String [unique, not null]
+  document documentRecord [not null]
+}
+
+Table emergencyContact {
+  id String [pk]
+  studentId String [not null]
+  student studentProfile [not null]
+  name String [not null]
+  relation RelationType [not null]
+  phone String [not null]
+  altPhone String
+  priority Int [not null, default: 1]
+}
+
+Table studentMedicalInfo {
+  id String [pk]
+  studentId String [unique, not null]
+  student studentProfile [not null]
+  allergies String
+  chronicConditions String
+  medications String
+  doctorName String
+  doctorPhone String
+  insuranceInfo String
+  updatedAt DateTime [not null]
+}
+
+Table siblingLink {
+  id String [pk]
+  primaryId String [not null]
+  primary studentProfile [not null]
+  siblingId String [not null]
+  sibling studentProfile [not null]
+  confirmedBy String
+  createdAt DateTime [default: `now()`, not null]
+
+  indexes {
+    (primaryId, siblingId) [unique]
+  }
+}
+
+Table house {
+  id String [pk]
+  organizationId String [not null]
+  organization organization [not null]
+  name String [not null]
+  colorCode String
+  memberships houseMembership [not null]
+
+  indexes {
+    (organizationId, name) [unique]
+  }
+}
+
+Table houseMembership {
+  id String [pk]
+  studentId String [unique, not null]
+  student studentProfile [not null]
+  houseId String [not null]
+  house house [not null]
+  assignedAt DateTime [default: `now()`, not null]
+}
+
+Table club {
+  id String [pk]
+  organizationId String [not null]
+  organization organization [not null]
+  name String [not null]
+  description String
+  memberships clubMembership [not null]
+}
+
+Table clubMembership {
+  id String [pk]
+  studentId String [not null]
+  student studentProfile [not null]
+  clubId String [not null]
+  club club [not null]
+  joinedAt DateTime [default: `now()`, not null]
+
+  indexes {
+    (studentId, clubId) [unique]
+  }
+}
+
+Table certificate {
+  id String [pk]
+  organizationId String [not null]
+  studentId String [not null]
+  student studentProfile [not null]
+  type String [not null]
+  serialNumber String [not null]
+  issuedAt DateTime [default: `now()`, not null]
+  issuedBy String
+  fileUrl String
+
+  indexes {
+    (organizationId, type, serialNumber) [unique]
+  }
+}
+
+Table guardian {
+  id String [pk]
+  organizationId String [not null]
+  organization organization [not null]
+  userId String [unique]
+  user user
+  firstName String [not null]
+  lastName String [not null]
+  phone String [not null]
+  altPhone String
+  email String
+  occupation String
+  annualIncome Decimal
+  address String
+  city String
+  state String
+  pincode String
+  photoUrl String
+  preferredChannel MessageChannel [default: 'SMS']
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  deletedAt DateTime
+  studentLinks studentGuardian [not null]
+}
+
+Table studentGuardian {
+  id String [pk]
+  studentId String [not null]
+  student studentProfile [not null]
+  guardianId String [not null]
+  guardian guardian [not null]
+  relation RelationType [not null]
+  isPrimaryContact Boolean [not null, default: false]
+  hasPortalAccess Boolean [not null, default: true]
+  hasLegalCustody Boolean [not null, default: true]
+  createdAt DateTime [default: `now()`, not null]
+
+  indexes {
+    (studentId, guardianId) [unique]
+  }
+}
+
+Table staffProfile {
+  id String [pk]
+  organizationId String [not null]
+  organization organization [not null]
+  userId String [unique]
+  user user
+  employeeId String [not null]
+  firstName String [not null]
+  lastName String [not null]
+  department String
+  designation String
+  phone String [not null]
+  email String
+  photoUrl String
+  dateOfBirth DateTime
+  gender Gender
+  qualification String
+  experienceYears Int
+  joiningDate DateTime [default: `now()`, not null]
+  status EmploymentStatus [not null, default: 'ACTIVE']
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  deletedAt DateTime
+  employeeRecord employeeRecord
+  classesAsTeacher classSection [not null]
+  timetableSlots timetableSlot [not null]
+  attendanceRecords staffAttendance [not null]
+  leaveRequests leaveRequest [not null]
+  payslips payslip [not null]
+  performanceReviews performanceReview [not null]
+  documents staffDocument [not null]
+  vehicleAssignments vehicleAssignment [not null]
+  hostelWardenOf hostel [not null]
+  homeworkGraded homeworkSubmission [not null]
+  lessonPlans lessonPlan [not null]
+  disciplinaryRecordsRaised disciplinaryRecord [not null]
+
+  indexes {
+    (organizationId, employeeId) [unique]
+  }
+}
+
+Table employeeRecord {
+  id String [pk]
+  organizationId String [not null]
+  organization organization [not null]
+  staffId String [unique, not null]
+  staff staffProfile [not null]
+  panMasked String
+  aadhaarMasked String
+  pfNumber String
+  esiNumber String
+  bankAccountMasked String
+  bankIfsc String
+  bankName String
+  salaryStructureId String
+  salaryStructure salaryStructure
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+}
+
+Table staffDocument {
+  id String [pk]
+  organizationId String [not null]
+  staffId String [not null]
+  staff staffProfile [not null]
+  documentId String [unique, not null]
+  document documentRecord [not null]
+}
+
+Table performanceReview {
+  id String [pk]
+  organizationId String [not null]
+  staffId String [not null]
+  staff staffProfile [not null]
+  reviewPeriod String [not null]
+  rating Int [not null]
+  remarks String
+  reviewedBy String
+  reviewedAt DateTime [default: `now()`, not null]
+}
+
+Table studentAttendance {
+  id String [pk]
+  organizationId String [not null]
+  organization organization [not null]
+  studentId String [not null]
+  student studentProfile [not null]
+  date DateTime [not null]
+  status AttendanceStatus [not null]
+  periodId String
+  markedBy String
+  biometricRef String
+  remarks String
+  createdAt DateTime [default: `now()`, not null]
+
+  indexes {
+    (studentId, date, periodId) [unique]
+  }
+}
+
+Table staffAttendance {
+  id String [pk]
+  organizationId String [not null]
+  organization organization [not null]
+  staffId String [not null]
+  staff staffProfile [not null]
+  date DateTime [not null]
+  status AttendanceStatus [not null]
+  checkIn DateTime
+  checkOut DateTime
+  biometricRef String
+  createdAt DateTime [default: `now()`, not null]
+
+  indexes {
+    (staffId, date) [unique]
+  }
+}
+
+Table leaveRequest {
+  id String [pk]
+  organizationId String [not null]
+  organization organization [not null]
+  staffId String [not null]
+  staff staffProfile [not null]
+  academicYearId String
+  academicYear academicYear
+  startDate DateTime [not null]
+  endDate DateTime [not null]
+  reason String
+  status LeaveStatus [not null, default: 'PENDING']
+  approvedBy String
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+}
+
+Table examType {
+  id String [pk]
+  organizationId String [not null]
+  organization organization [not null]
+  name String [not null]
+  category ExamCategory [not null]
+  weightagePct Decimal
+  examSessions examSession [not null]
+
+  indexes {
+    (organizationId, name) [unique]
+  }
+}
+
+Table examSession {
+  id String [pk]
+  organizationId String [not null]
+  organization organization [not null]
+  academicYearId String [not null]
+  academicYear academicYear [not null]
+  termId String
+  term term
+  examTypeId String [not null]
+  examType examType [not null]
+  name String [not null]
+  startDate DateTime [not null]
+  endDate DateTime [not null]
+  resultPublished Boolean [not null, default: false]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  examSubjects examSubject [not null]
+}
+
+Table examSubject {
+  id String [pk]
+  examSessionId String [not null]
+  examSession examSession [not null]
+  subjectId String [not null]
+  subject subject [not null]
+  maxMarksTheory Decimal [not null, default: 100]
+  maxMarksPractical Decimal
+  maxMarksInternal Decimal
+  passMarks Decimal [not null, default: 33]
+  examDate DateTime
+  results examResult [not null]
+
+  indexes {
+    (examSessionId, subjectId) [unique]
+  }
+}
+
+Table examResult {
+  id String [pk]
+  organizationId String [not null]
+  examSubjectId String [not null]
+  examSubject examSubject [not null]
+  studentId String [not null]
+  student studentProfile [not null]
+  marksTheory Decimal
+  marksPractical Decimal
+  marksInternal Decimal
+  totalMarks Decimal
+  grade String
+  isAbsent Boolean [not null, default: false]
+  enteredBy String
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+
+  indexes {
+    (examSubjectId, studentId) [unique]
+  }
+}
+
+Table gradeScale {
+  id String [pk]
+  organizationId String [not null]
+  organization organization [not null]
+  name String [not null]
+  minPercentage Decimal [not null]
+  maxPercentage Decimal [not null]
+  grade String [not null]
+  gradePoint Decimal
+
+  indexes {
+    (organizationId, name, grade) [unique]
+  }
+}
+
+Table feeCategory {
+  id String [pk]
+  organizationId String [not null]
+  organization organization [not null]
+  name String [not null]
+  isRefundable Boolean [not null, default: false]
+  structureItems feeStructureItem [not null]
+
+  indexes {
+    (organizationId, name) [unique]
+  }
+}
+
+Table feeStructure {
+  id String [pk]
+  organizationId String [not null]
+  organization organization [not null]
+  academicYearId String [not null]
+  academicYear academicYear [not null]
+  gradeLevelId String
+  name String [not null]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  items feeStructureItem [not null]
+}
+
+Table feeStructureItem {
+  id String [pk]
+  feeStructureId String [not null]
+  feeStructure feeStructure [not null]
+  feeCategoryId String [not null]
+  feeCategory feeCategory [not null]
+  amount Decimal [not null]
+  installmentNumber Int [not null, default: 1]
+  dueDate DateTime
+  invoiceLineItems invoiceLineItem [not null]
+}
+
+Table invoice {
+  id String [pk]
+  organizationId String [not null]
+  organization organization [not null]
+  studentId String [not null]
+  student studentProfile [not null]
+  invoiceNumber String [not null]
+  totalAmount Decimal [not null]
+  discountAmount Decimal [not null, default: 0]
+  fineAmount Decimal [not null, default: 0]
+  paidAmount Decimal [not null, default: 0]
+  status InvoiceStatus [not null, default: 'ISSUED']
+  dueDate DateTime [not null]
+  issuedAt DateTime [default: `now()`, not null]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  lineItems invoiceLineItem [not null]
+  receipts receipt [not null]
+
+  indexes {
+    (organizationId, invoiceNumber) [unique]
+  }
+}
+
+Table invoiceLineItem {
+  id String [pk]
+  invoiceId String [not null]
+  invoice invoice [not null]
+  feeStructureItemId String
+  feeStructureItem feeStructureItem
+  description String [not null]
+  amount Decimal [not null]
+}
+
+Table receipt {
+  id String [pk]
+  organizationId String [not null]
+  organization organization [not null]
+  invoiceId String [not null]
+  invoice invoice [not null]
+  receiptNumber String [not null]
+  amountPaid Decimal [not null]
+  paymentMode PaymentMode [not null]
+  transactionRef String
+  paidAt DateTime [default: `now()`, not null]
+  refundedAmount Decimal [not null, default: 0]
+  createdAt DateTime [default: `now()`, not null]
+
+  indexes {
+    (organizationId, receiptNumber) [unique]
+  }
+}
+
+Table studentFeeDiscount {
+  id String [pk]
+  organizationId String [not null]
+  studentId String [not null]
+  student studentProfile [not null]
+  name String [not null]
+  discountType String [not null]
+  value Decimal [not null]
+  academicYearId String
+  approvedBy String
+  createdAt DateTime [default: `now()`, not null]
+}
+
+Table transportRoute {
+  id String [pk]
+  organizationId String [not null]
+  organization organization [not null]
+  name String [not null]
+  createdAt DateTime [default: `now()`, not null]
+  stops transportStop [not null]
+  vehicleAssignments vehicleAssignment [not null]
+  studentAssignments studentTransportAssignment [not null]
+}
+
+Table transportStop {
+  id String [pk]
+  routeId String [not null]
+  route transportRoute [not null]
+  name String [not null]
+  sequence Int [not null]
+  pickupTime String
+  dropTime String
+  studentAssignments studentTransportAssignment [not null]
+
+  indexes {
+    (routeId, sequence) [unique]
+  }
+}
+
+Table vehicle {
+  id String [pk]
+  organizationId String [not null]
+  organization organization [not null]
+  vehicleNumber String [not null]
+  capacity Int [not null]
+  gpsDeviceId String
+  assignments vehicleAssignment [not null]
+
+  indexes {
+    (organizationId, vehicleNumber) [unique]
+  }
+}
+
+Table vehicleAssignment {
+  id String [pk]
+  organizationId String [not null]
+  vehicleId String [not null]
+  vehicle vehicle [not null]
+  routeId String [not null]
+  route transportRoute [not null]
+  driverId String
+  driver staffProfile
+  effectiveFrom DateTime [default: `now()`, not null]
+  effectiveTo DateTime
+}
+
+Table studentTransportAssignment {
+  id String [pk]
+  organizationId String [not null]
+  studentId String [not null]
+  student studentProfile [not null]
+  routeId String [not null]
+  route transportRoute [not null]
+  stopId String [not null]
+  stop transportStop [not null]
+  effectiveFrom DateTime [default: `now()`, not null]
+  effectiveTo DateTime
+}
+
+Table hostel {
+  id String [pk]
+  organizationId String [not null]
+  organization organization [not null]
+  campusId String
+  campus campus
+  name String [not null]
+  wardenId String
+  warden staffProfile
+  rooms hostelRoom [not null]
+}
+
+Table hostelRoom {
+  id String [pk]
+  organizationId String [not null]
+  organization organization [not null]
+  hostelId String [not null]
+  hostel hostel [not null]
+  roomNumber String [not null]
+  capacity Int [not null]
+  beds hostelBed [not null]
+
+  indexes {
+    (hostelId, roomNumber) [unique]
+  }
+}
+
+Table hostelBed {
+  id String [pk]
+  roomId String [not null]
+  room hostelRoom [not null]
+  bedNumber String [not null]
+  allocations hostelRoomAllocation [not null]
+
+  indexes {
+    (roomId, bedNumber) [unique]
+  }
+}
+
+Table hostelRoomAllocation {
+  id String [pk]
+  organizationId String [not null]
+  studentId String [not null]
+  student studentProfile [not null]
+  bedId String [not null]
+  bed hostelBed [not null]
+  checkInDate DateTime [default: `now()`, not null]
+  checkOutDate DateTime
+}
+
+Table book {
+  id String [pk]
+  organizationId String [not null]
+  organization organization [not null]
+  title String [not null]
+  author String
+  publisher String
+  isbn String
+  category String
+  rack String
+  shelf String
+  totalCopies Int [not null, default: 1]
+  availableCopies Int [not null, default: 1]
+  issues bookIssue [not null]
+}
+
+Table libraryCard {
+  id String [pk]
+  organizationId String [not null]
+  studentId String [unique, not null]
+  student studentProfile [not null]
+  cardNumber String [not null]
+  issuedAt DateTime [default: `now()`, not null]
+  isActive Boolean [not null, default: true]
+
+  indexes {
+    (organizationId, cardNumber) [unique]
+  }
+}
+
+Table bookIssue {
+  id String [pk]
+  organizationId String [not null]
+  organization organization [not null]
+  bookId String [not null]
+  book book [not null]
+  borrowerType String [not null]
+  borrowerId String [not null]
+  issuedAt DateTime [default: `now()`, not null]
+  dueDate DateTime [not null]
+  returnedAt DateTime
+  fineAmount Decimal [not null, default: 0]
+}
+
+Table vendor {
+  id String [pk]
+  organizationId String [not null]
+  organization organization [not null]
+  name String [not null]
+  phone String
+  email String
+  address String
+  purchases purchase [not null]
+}
+
+Table asset {
+  id String [pk]
+  organizationId String [not null]
+  organization organization [not null]
+  name String [not null]
+  assetTag String [not null]
+  category String
+  condition AssetCondition [not null, default: 'NEW']
+  purchaseId String
+  purchase purchase
+  purchaseDate DateTime
+  purchaseValue Decimal
+  assignments assetAssignment [not null]
+  maintenances assetMaintenance [not null]
+
+  indexes {
+    (organizationId, assetTag) [unique]
+  }
+}
+
+Table assetAssignment {
+  id String [pk]
+  assetId String [not null]
+  asset asset [not null]
+  assignedTo String [not null]
+  assignedAt DateTime [default: `now()`, not null]
+  returnedAt DateTime
+}
+
+Table assetMaintenance {
+  id String [pk]
+  assetId String [not null]
+  asset asset [not null]
+  description String [not null]
+  cost Decimal
+  performedAt DateTime [default: `now()`, not null]
+}
+
+Table purchase {
+  id String [pk]
+  organizationId String [not null]
+  vendorId String [not null]
+  vendor vendor [not null]
+  purchaseOrderNumber String [not null]
+  totalAmount Decimal [not null]
+  purchasedAt DateTime [default: `now()`, not null]
+  assets asset [not null]
+
+  indexes {
+    (organizationId, purchaseOrderNumber) [unique]
+  }
+}
+
+Table ledgerEntry {
+  id String [pk]
+  organizationId String [not null]
+  organization organization [not null]
+  entryType String [not null]
+  category String [not null]
+  amount Decimal [not null]
+  description String [not null]
+  referenceType String
+  referenceId String
+  postedAt DateTime [default: `now()`, not null]
+  createdAt DateTime [default: `now()`, not null]
+}
+
+Table budget {
+  id String [pk]
+  organizationId String [not null]
+  category String [not null]
+  allocatedAmount Decimal [not null]
+  spentAmount Decimal [not null, default: 0]
+  fiscalYear String [not null]
+
+  indexes {
+    (organizationId, category, fiscalYear) [unique]
+  }
+}
+
+Table salaryStructure {
+  id String [pk]
+  organizationId String [not null]
+  organization organization [not null]
+  name String [not null]
+  basicPay Decimal [not null]
+  allowancesJson String
+  employeeRecords employeeRecord [not null]
+  payslips payslip [not null]
+}
+
+Table payslip {
+  id String [pk]
+  organizationId String [not null]
+  organization organization [not null]
+  staffId String [not null]
+  staff staffProfile [not null]
+  salaryStructureId String
+  salaryStructure salaryStructure
+  month Int [not null]
+  year Int [not null]
+  grossPay Decimal [not null]
+  totalDeductions Decimal [not null, default: 0]
+  netPay Decimal [not null]
+  status String [not null, default: 'GENERATED']
+  generatedAt DateTime [default: `now()`, not null]
+
+  indexes {
+    (staffId, month, year) [unique]
+  }
+}
+
+Table notice {
+  id String [pk]
+  organizationId String [not null]
+  organization organization [not null]
+  title String [not null]
+  body String [not null]
+  audience NoticeAudience [not null, default: 'ALL']
+  publishedAt DateTime [default: `now()`, not null]
+  createdBy String
+}
+
+Table messageTemplate {
+  id String [pk]
+  organizationId String [not null]
+  name String [not null]
+  channel MessageChannel [not null]
+  body String [not null]
+
+  indexes {
+    (organizationId, name) [unique]
+  }
+}
+
+Table messageLog {
+  id String [pk]
+  organizationId String [not null]
+  organization organization [not null]
+  channel MessageChannel [not null]
+  recipientType String [not null]
+  recipientId String [not null]
+  templateId String
+  content String [not null]
+  status String [not null, default: 'SENT']
+  sentAt DateTime [default: `now()`, not null]
+}
+
+Table homework {
+  id String [pk]
+  organizationId String [not null]
+  organization organization [not null]
+  classSectionId String [not null]
+  classSection classSection [not null]
+  subjectId String [not null]
+  subject subject [not null]
+  title String [not null]
+  description String
+  assignedDate DateTime [default: `now()`, not null]
+  dueDate DateTime [not null]
+  submissions homeworkSubmission [not null]
+}
+
+Table homeworkSubmission {
+  id String [pk]
+  homeworkId String [not null]
+  homework homework [not null]
+  studentId String [not null]
+  student studentProfile [not null]
+  attachmentUrl String
+  submittedAt DateTime [default: `now()`, not null]
+  gradedById String
+  gradedBy staffProfile
+  score Decimal
+  teacherRemarks String
+
+  indexes {
+    (homeworkId, studentId) [unique]
+  }
+}
+
+Table lessonPlan {
+  id String [pk]
+  organizationId String [not null]
+  organization organization [not null]
+  classSectionId String [not null]
+  classSection classSection [not null]
+  subjectId String [not null]
+  subject subject [not null]
+  teacherId String [not null]
+  teacher staffProfile [not null]
+  topic String [not null]
+  syllabusRef String
+  plannedDate DateTime [not null]
+  materialUrl String
+}
+
+Table schoolEvent {
+  id String [pk]
+  organizationId String [not null]
+  organization organization [not null]
+  title String [not null]
+  description String
+  eventType String
+  startDate DateTime [not null]
+  endDate DateTime
+  location String
+}
+
+Table disciplinaryRecord {
+  id String [pk]
+  organizationId String [not null]
+  organization organization [not null]
+  studentId String [not null]
+  student studentProfile [not null]
+  type String [not null]
+  description String [not null]
+  raisedById String
+  raisedBy staffProfile
+  actionTaken String
+  recordedAt DateTime [default: `now()`, not null]
+}
+
+Table healthRecord {
+  id String [pk]
+  organizationId String [not null]
+  organization organization [not null]
+  studentId String [not null]
+  student studentProfile [not null]
+  visitType String [not null]
+  notes String
+  visitedAt DateTime [default: `now()`, not null]
+  attendedBy String
+}
+
+Table documentRecord {
+  id String [pk]
+  organizationId String [not null]
+  organization organization [not null]
+  category DocumentCategory [not null]
+  name String [not null]
+  fileUrl String [not null]
+  uploadedBy String
+  uploadedAt DateTime [default: `now()`, not null]
+  studentLink studentDocument
+  staffLink staffDocument
+}
+
+Table apiToken {
+  id String [pk]
+  organizationId String [not null]
+  organization organization [not null]
+  name String [not null]
+  tokenHash String [unique, not null]
+  scopes String
+  lastUsedAt DateTime
+  expiresAt DateTime
+  createdAt DateTime [default: `now()`, not null]
+  revokedAt DateTime
+}
+
+Table auditLog {
+  id String [pk]
+  organizationId String [not null]
+  organization organization [not null]
+  actorId String
+  actor user
+  action String [not null]
+  entityType String [not null]
+  entityId String [not null]
+  changesJson String
+  createdAt DateTime [default: `now()`, not null]
+}
+
+Enum Role {
+  ADMIN
+  SCHOOL_ADMIN
+  USER
+}
+
+Enum SchoolRole {
+  ADMIN
+  SCHOOL_ADMIN
+  PRINCIPAL
+  VICE_PRINCIPAL
+  REGISTRAR
+  TEACHER
+  ACCOUNTANT
+  LIBRARIAN
+  RECEPTIONIST
+  TRANSPORT_MANAGER
+  HOSTEL_WARDEN
+  NURSE
+  HR
+  SECURITY
+  SUPPORT_STAFF
+  STUDENT
+  GUARDIAN
+}
+
+Enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
+
+Enum BloodGroup {
+  A_POS
+  A_NEG
+  B_POS
+  B_NEG
+  AB_POS
+  AB_NEG
+  O_POS
+  O_NEG
+  UNKNOWN
+}
+
+Enum StudentStatus {
+  ENQUIRY
+  APPLIED
+  ADMITTED
+  ACTIVE
+  SUSPENDED
+  TRANSFERRED_OUT
+  GRADUATED
+  WITHDRAWN
+  ALUMNI
+}
+
+Enum EnrollmentStatus {
+  ACTIVE
+  PROMOTED
+  DETAINED
+  TRANSFERRED
+  WITHDRAWN
+  COMPLETED
+}
+
+Enum EmploymentStatus {
+  ACTIVE
+  ON_LEAVE
+  SUSPENDED
+  RESIGNED
+  TERMINATED
+  RETIRED
+}
+
+Enum AttendanceStatus {
+  PRESENT
+  ABSENT
+  LATE
+  HALF_DAY
+  ON_LEAVE
+  HOLIDAY
+  EXCUSED
+}
+
+Enum LeaveStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELLED
+}
+
+Enum InvoiceStatus {
+  DRAFT
+  ISSUED
+  PARTIALLY_PAID
+  PAID
+  OVERDUE
+  CANCELLED
+  REFUNDED
+}
+
+Enum PaymentMode {
+  CASH
+  CHEQUE
+  BANK_TRANSFER
+  UPI
+  CARD
+  ONLINE_GATEWAY
+  DD
+}
+
+Enum DocumentCategory {
+  STUDENT
+  STAFF
+  SCHOOL
+  FINANCE
+  ADMISSION
+  OTHER
+}
+
+Enum BoardType {
+  CBSE
+  ICSE
+  ISC
+  STATE_BOARD
+  IB
+  IGCSE
+  CUSTOM
+}
+
+Enum RelationType {
+  FATHER
+  MOTHER
+  GUARDIAN
+  GRANDFATHER
+  GRANDMOTHER
+  UNCLE
+  AUNT
+  SIBLING
+  OTHER
+}
+
+Enum ExamCategory {
+  UNIT_TEST
+  MID_TERM
+  FINAL_TERM
+  PRACTICAL
+  INTERNAL_ASSESSMENT
+  BOARD_EXAM
+  SURPRISE_TEST
+}
+
+Enum AssetCondition {
+  NEW
+  GOOD
+  FAIR
+  DAMAGED
+  DISPOSED
+}
+
+Enum NoticeAudience {
+  ALL
+  STUDENTS
+  GUARDIANS
+  STAFF
+  TEACHERS
+  SPECIFIC_CLASS
+}
+
+Enum MessageChannel {
+  SMS
+  EMAIL
+  WHATSAPP
+  PUSH
+  IN_APP
+}
+
+Ref: session.userId > user.id [delete: Cascade]
+
+Ref: account.userId > user.id [delete: Cascade]
+
+Ref: twoFactor.userId > user.id [delete: Cascade]
+
+Ref: organizationRole.organizationId > organization.id [delete: Cascade]
+
+Ref: team.organizationId > organization.id [delete: Cascade]
+
+Ref: teamMember.teamId > team.id [delete: Cascade]
+
+Ref: teamMember.userId > user.id [delete: Cascade]
+
+Ref: member.organizationId > organization.id [delete: Cascade]
+
+Ref: member.userId > user.id [delete: Cascade]
+
+Ref: invitation.organizationId > organization.id [delete: Cascade]
+
+Ref: invitation.inviterId > user.id [delete: Cascade]
+
+Ref: board.organizationId > organization.id [delete: Cascade]
+
+Ref: gradeLevel.organizationId > organization.id [delete: Cascade]
+
+Ref: gradeLevel.boardId > board.id
+
+Ref: academicYear.organizationId > organization.id [delete: Cascade]
+
+Ref: term.academicYearId > academicYear.id [delete: Cascade]
+
+Ref: campus.organizationId > organization.id [delete: Cascade]
+
+Ref: classSection.organizationId > organization.id [delete: Cascade]
+
+Ref: classSection.academicYearId > academicYear.id [delete: Cascade]
+
+Ref: classSection.gradeLevelId > gradeLevel.id
+
+Ref: classSection.campusId > campus.id
+
+Ref: classSection.classTeacherId > staffProfile.id
+
+Ref: subject.organizationId > organization.id [delete: Cascade]
+
+Ref: subjectGroup.organizationId > organization.id [delete: Cascade]
+
+Ref: subjectGroup.classSectionId > classSection.id [delete: Cascade]
+
+Ref: subjectGroupSubject.subjectGroupId > subjectGroup.id [delete: Cascade]
+
+Ref: subjectGroupSubject.subjectId > subject.id [delete: Cascade]
+
+Ref: period.organizationId > organization.id [delete: Cascade]
+
+Ref: timetable.organizationId > organization.id [delete: Cascade]
+
+Ref: timetable.academicYearId > academicYear.id [delete: Cascade]
+
+Ref: timetableSlot.timetableId > timetable.id [delete: Cascade]
+
+Ref: timetableSlot.classSectionId > classSection.id [delete: Cascade]
+
+Ref: timetableSlot.periodId > period.id
+
+Ref: timetableSlot.subjectId > subject.id
+
+Ref: timetableSlot.teacherId > staffProfile.id
+
+Ref: holiday.organizationId > organization.id [delete: Cascade]
+
+Ref: holiday.academicYearId > academicYear.id
+
+Ref: studentProfile.organizationId > organization.id [delete: Cascade]
+
+Ref: studentProfile.userId - user.id
+
+Ref: studentEnrollment.organizationId > organization.id [delete: Cascade]
+
+Ref: studentEnrollment.studentId > studentProfile.id [delete: Cascade]
+
+Ref: studentEnrollment.academicYearId > academicYear.id
+
+Ref: studentEnrollment.classSectionId > classSection.id
+
+Ref: sectionTransferLog.enrollmentId > studentEnrollment.id [delete: Cascade]
+
+Ref: studentPromotion.fromEnrollmentId > studentEnrollment.id
+
+Ref: studentPromotion.toEnrollmentId > studentEnrollment.id
+
+Ref: studentDocument.studentId > studentProfile.id [delete: Cascade]
+
+Ref: studentDocument.documentId - documentRecord.id [delete: Cascade]
+
+Ref: emergencyContact.studentId > studentProfile.id [delete: Cascade]
+
+Ref: studentMedicalInfo.studentId - studentProfile.id [delete: Cascade]
+
+Ref: siblingLink.primaryId > studentProfile.id [delete: Cascade]
+
+Ref: siblingLink.siblingId > studentProfile.id [delete: Cascade]
+
+Ref: house.organizationId > organization.id [delete: Cascade]
+
+Ref: houseMembership.studentId - studentProfile.id [delete: Cascade]
+
+Ref: houseMembership.houseId > house.id
+
+Ref: club.organizationId > organization.id [delete: Cascade]
+
+Ref: clubMembership.studentId > studentProfile.id [delete: Cascade]
+
+Ref: clubMembership.clubId > club.id [delete: Cascade]
+
+Ref: certificate.studentId > studentProfile.id [delete: Cascade]
+
+Ref: guardian.organizationId > organization.id [delete: Cascade]
+
+Ref: guardian.userId - user.id
+
+Ref: studentGuardian.studentId > studentProfile.id [delete: Cascade]
+
+Ref: studentGuardian.guardianId > guardian.id [delete: Cascade]
+
+Ref: staffProfile.organizationId > organization.id [delete: Cascade]
+
+Ref: staffProfile.userId - user.id
+
+Ref: employeeRecord.organizationId > organization.id [delete: Cascade]
+
+Ref: employeeRecord.staffId - staffProfile.id [delete: Cascade]
+
+Ref: employeeRecord.salaryStructureId > salaryStructure.id
+
+Ref: staffDocument.staffId > staffProfile.id [delete: Cascade]
+
+Ref: staffDocument.documentId - documentRecord.id [delete: Cascade]
+
+Ref: performanceReview.staffId > staffProfile.id [delete: Cascade]
+
+Ref: studentAttendance.organizationId > organization.id [delete: Cascade]
+
+Ref: studentAttendance.studentId > studentProfile.id [delete: Cascade]
+
+Ref: staffAttendance.organizationId > organization.id [delete: Cascade]
+
+Ref: staffAttendance.staffId > staffProfile.id [delete: Cascade]
+
+Ref: leaveRequest.organizationId > organization.id [delete: Cascade]
+
+Ref: leaveRequest.staffId > staffProfile.id [delete: Cascade]
+
+Ref: leaveRequest.academicYearId > academicYear.id
+
+Ref: examType.organizationId > organization.id [delete: Cascade]
+
+Ref: examSession.organizationId > organization.id [delete: Cascade]
+
+Ref: examSession.academicYearId > academicYear.id
+
+Ref: examSession.termId > term.id
+
+Ref: examSession.examTypeId > examType.id
+
+Ref: examSubject.examSessionId > examSession.id [delete: Cascade]
+
+Ref: examSubject.subjectId > subject.id
+
+Ref: examResult.examSubjectId > examSubject.id [delete: Cascade]
+
+Ref: examResult.studentId > studentProfile.id [delete: Cascade]
+
+Ref: gradeScale.organizationId > organization.id [delete: Cascade]
+
+Ref: feeCategory.organizationId > organization.id [delete: Cascade]
+
+Ref: feeStructure.organizationId > organization.id [delete: Cascade]
+
+Ref: feeStructure.academicYearId > academicYear.id
+
+Ref: feeStructureItem.feeStructureId > feeStructure.id [delete: Cascade]
+
+Ref: feeStructureItem.feeCategoryId > feeCategory.id
+
+Ref: invoice.organizationId > organization.id [delete: Cascade]
+
+Ref: invoice.studentId > studentProfile.id [delete: Cascade]
+
+Ref: invoiceLineItem.invoiceId > invoice.id [delete: Cascade]
+
+Ref: invoiceLineItem.feeStructureItemId > feeStructureItem.id
+
+Ref: receipt.organizationId > organization.id [delete: Cascade]
+
+Ref: receipt.invoiceId > invoice.id
+
+Ref: studentFeeDiscount.studentId > studentProfile.id [delete: Cascade]
+
+Ref: transportRoute.organizationId > organization.id [delete: Cascade]
+
+Ref: transportStop.routeId > transportRoute.id [delete: Cascade]
+
+Ref: vehicle.organizationId > organization.id [delete: Cascade]
+
+Ref: vehicleAssignment.vehicleId > vehicle.id
+
+Ref: vehicleAssignment.routeId > transportRoute.id
+
+Ref: vehicleAssignment.driverId > staffProfile.id
+
+Ref: studentTransportAssignment.studentId > studentProfile.id [delete: Cascade]
+
+Ref: studentTransportAssignment.routeId > transportRoute.id
+
+Ref: studentTransportAssignment.stopId > transportStop.id
+
+Ref: hostel.organizationId > organization.id [delete: Cascade]
+
+Ref: hostel.campusId > campus.id
+
+Ref: hostel.wardenId > staffProfile.id
+
+Ref: hostelRoom.organizationId > organization.id [delete: Cascade]
+
+Ref: hostelRoom.hostelId > hostel.id [delete: Cascade]
+
+Ref: hostelBed.roomId > hostelRoom.id [delete: Cascade]
+
+Ref: hostelRoomAllocation.studentId > studentProfile.id [delete: Cascade]
+
+Ref: hostelRoomAllocation.bedId > hostelBed.id
+
+Ref: book.organizationId > organization.id [delete: Cascade]
+
+Ref: libraryCard.studentId - studentProfile.id [delete: Cascade]
+
+Ref: bookIssue.organizationId > organization.id [delete: Cascade]
+
+Ref: bookIssue.bookId > book.id
+
+Ref: vendor.organizationId > organization.id [delete: Cascade]
+
+Ref: asset.organizationId > organization.id [delete: Cascade]
+
+Ref: asset.purchaseId > purchase.id
+
+Ref: assetAssignment.assetId > asset.id [delete: Cascade]
+
+Ref: assetMaintenance.assetId > asset.id [delete: Cascade]
+
+Ref: purchase.vendorId > vendor.id
+
+Ref: ledgerEntry.organizationId > organization.id [delete: Cascade]
+
+Ref: salaryStructure.organizationId > organization.id [delete: Cascade]
+
+Ref: payslip.organizationId > organization.id [delete: Cascade]
+
+Ref: payslip.staffId > staffProfile.id [delete: Cascade]
+
+Ref: payslip.salaryStructureId > salaryStructure.id
+
+Ref: notice.organizationId > organization.id [delete: Cascade]
+
+Ref: messageLog.organizationId > organization.id [delete: Cascade]
+
+Ref: homework.organizationId > organization.id [delete: Cascade]
+
+Ref: homework.classSectionId > classSection.id [delete: Cascade]
+
+Ref: homework.subjectId > subject.id
+
+Ref: homeworkSubmission.homeworkId > homework.id [delete: Cascade]
+
+Ref: homeworkSubmission.studentId > studentProfile.id [delete: Cascade]
+
+Ref: homeworkSubmission.gradedById > staffProfile.id
+
+Ref: lessonPlan.organizationId > organization.id [delete: Cascade]
+
+Ref: lessonPlan.classSectionId > classSection.id [delete: Cascade]
+
+Ref: lessonPlan.subjectId > subject.id
+
+Ref: lessonPlan.teacherId > staffProfile.id
+
+Ref: schoolEvent.organizationId > organization.id [delete: Cascade]
+
+Ref: disciplinaryRecord.organizationId > organization.id [delete: Cascade]
+
+Ref: disciplinaryRecord.studentId > studentProfile.id [delete: Cascade]
+
+Ref: disciplinaryRecord.raisedById > staffProfile.id
+
+Ref: healthRecord.organizationId > organization.id [delete: Cascade]
+
+Ref: healthRecord.studentId > studentProfile.id [delete: Cascade]
+
+Ref: documentRecord.organizationId > organization.id [delete: Cascade]
+
+Ref: apiToken.organizationId > organization.id [delete: Cascade]
+
+Ref: auditLog.organizationId > organization.id [delete: Cascade]
+
+Ref: auditLog.actorId > user.id

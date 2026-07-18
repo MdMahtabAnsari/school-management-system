@@ -10,15 +10,16 @@ import {
   multiSession,
   emailOTP,
   bearer,
+  organization,
 } from 'better-auth/plugins';
-import { PrismaService } from '../../prisma/prisma.service';
-import { username as usernameSchema } from './common';
+import { PrismaService } from '@/prisma/prisma.service';
+import { username as usernameSchema } from '@/auth/configs/common';
 import {
-  superAdmin,
+  admin,
   schoolAdmin,
   user,
   ac,
-} from './permissions/admin.permission';
+} from '@/auth/configs/permissions/admin.permission';
 
 export const nestAuth = (prisma: PrismaService) => {
   return betterAuth({
@@ -28,19 +29,19 @@ export const nestAuth = (prisma: PrismaService) => {
     user: {
       changeEmail: {
         enabled: true,
-        sendChangeEmailVerification: async () => {},
+        sendChangeEmailVerification: async () => { },
       },
     },
     emailAndPassword: {
       requireEmailVerification: true,
       enabled: true,
-      sendResetPassword: async () => {},
+      sendResetPassword: async () => { },
     },
     emailVerification: {
-      sendVerificationEmail: async () => {},
+      sendVerificationEmail: async () => { },
       sendOnSignUp: true,
       autoSignInAfterVerification: true,
-      afterEmailVerification: async () => {},
+      afterEmailVerification: async () => { },
     },
     account: {
       accountLinking: {
@@ -50,13 +51,13 @@ export const nestAuth = (prisma: PrismaService) => {
     plugins: [
       bearer(),
       emailOTP({
-        async sendVerificationOTP() {},
+        async sendVerificationOTP() { },
       }),
       multiSession(),
       twoFactor({
         issuer: 'vaultkey',
         otpOptions: {
-          sendOTP: async () => {},
+          sendOTP: async () => { },
         },
       }),
       username({
@@ -65,19 +66,28 @@ export const nestAuth = (prisma: PrismaService) => {
         },
       }),
       magicLink({
-        sendMagicLink: async () => {},
+        sendMagicLink: async () => { },
       }),
       adminPlugin({
         defaultRole: 'user', // or Role.TEACHER, depending on your needs
         ac,
         roles: {
-          superAdmin,
+          admin,
           schoolAdmin,
           user,
         },
       }),
       lastLoginMethod(),
       ...(process.env.NODE_ENV === 'development' ? [openAPI()] : []),
+      organization({
+        dynamicAccessControl: {
+          enabled: true,
+        },
+        teams: {
+          enabled: true,
+
+        },
+      }),
     ],
     session: {
       cookieCache: {
@@ -90,10 +100,10 @@ export const nestAuth = (prisma: PrismaService) => {
       ...(process.env.TRUSTED_CLIENT_URL?.split(',') || []),
       ...(process.env.NODE_ENV === 'development'
         ? [
-            'exp://', // Trust all Expo URLs (prefix matching)
-            'exp://**', // Trust all Expo URLs (wildcard matching)
-            'exp://192.168.*.*:*/**', // Trust 192.168.x.x IP range with any port and path
-          ]
+          'exp://', // Trust all Expo URLs (prefix matching)
+          'exp://**', // Trust all Expo URLs (wildcard matching)
+          'exp://192.168.*.*:*/**', // Trust 192.168.x.x IP range with any port and path
+        ]
         : []),
     ],
     url: process.env.BETTER_AUTH_URL,

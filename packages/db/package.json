@@ -13,6 +13,7 @@
     "@types/pg": "^8.20.0",
     "@workspace/typescript-config": "workspace:*",
     "prisma": "^7.8.0",
+    "prisma-dbml-generator": "^0.12.0",
     "typescript": "^5"
   },
   "dependencies": {
