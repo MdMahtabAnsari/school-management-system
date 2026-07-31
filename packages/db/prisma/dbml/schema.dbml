@@ -23,10 +23,17 @@ Table user {
   teammembers teamMember [not null]
   members member [not null]
   invitations invitation [not null]
-  staffProfile staffProfile
-  guardianProfile guardian
-  studentProfile studentProfile
+  staffProfile staffProfile [not null]
+  guardianProfile guardian [not null]
+  studentProfile studentProfile [not null]
   auditLogsActedBy auditLog [not null]
+  studentProfileCreatedBy studentProfile [not null]
+  studentProfileUpdatedBy studentProfile [not null]
+  studentTransferBy sectionTransferLog [not null]
+  documentsUploadedBy documentRecord [not null]
+  siblingConfirmedBy siblingLink [not null]
+  certificatesIssuedBy certificate [not null]
+  performanceReviewedBy performanceReview [not null]
 }
 
 Table session {
@@ -309,6 +316,8 @@ Table classSection {
   timetableSlots timetableSlot [not null]
   homework homework [not null]
   lessonPlans lessonPlan [not null]
+  fromClassTransfers sectionTransferLog [not null]
+  toClassTransfers sectionTransferLog [not null]
 
   indexes {
     (academicYearId, gradeLevelId, name) [unique]
@@ -426,8 +435,8 @@ Table studentProfile {
   id String [pk]
   organizationId String [not null]
   organization organization [not null]
-  userId String [unique]
-  user user
+  userId String [not null]
+  user user [not null]
   admissionNumber String [not null]
   firstName String [not null]
   lastName String [not null]
@@ -445,8 +454,10 @@ Table studentProfile {
   createdAt DateTime [default: `now()`, not null]
   updatedAt DateTime [not null]
   deletedAt DateTime
-  createdBy String
-  updatedBy String
+  createdById String [not null]
+  createdBy user [not null]
+  updatedById String
+  updatedBy user
   enrollments studentEnrollment [not null]
   guardianLinks studentGuardian [not null]
   documents studentDocument [not null]
@@ -470,6 +481,7 @@ Table studentProfile {
 
   indexes {
     (organizationId, admissionNumber) [unique]
+    (organizationId, userId) [unique]
   }
 }
 
@@ -503,12 +515,15 @@ Table sectionTransferLog {
   enrollmentId String [not null]
   enrollment studentEnrollment [not null]
   fromClassSectionId String [not null]
+  fromClassSection classSection [not null]
   toClassSectionId String [not null]
+  toClassSection classSection [not null]
   fromRollNumber String [not null]
   toRollNumber String [not null]
   reason String
   transferredAt DateTime [default: `now()`, not null]
-  transferredBy String
+  transferredById String [not null]
+  transferredBy user [not null]
 }
 
 Table studentPromotion {
@@ -562,7 +577,8 @@ Table siblingLink {
   primary studentProfile [not null]
   siblingId String [not null]
   sibling studentProfile [not null]
-  confirmedBy String
+  confirmedById String [not null]
+  confirmedBy user [not null]
   createdAt DateTime [default: `now()`, not null]
 
   indexes {
@@ -622,8 +638,10 @@ Table certificate {
   type String [not null]
   serialNumber String [not null]
   issuedAt DateTime [default: `now()`, not null]
-  issuedBy String
+  issuedById String [not null]
+  issuedBy user [not null]
   fileUrl String
+  fileType CertificateFileType
 
   indexes {
     (organizationId, type, serialNumber) [unique]
@@ -634,8 +652,8 @@ Table guardian {
   id String [pk]
   organizationId String [not null]
   organization organization [not null]
-  userId String [unique]
-  user user
+  userId String [not null]
+  user user [not null]
   firstName String [not null]
   lastName String [not null]
   phone String [not null]
@@ -653,6 +671,10 @@ Table guardian {
   updatedAt DateTime [not null]
   deletedAt DateTime
   studentLinks studentGuardian [not null]
+
+  indexes {
+    (organizationId, userId) [unique]
+  }
 }
 
 Table studentGuardian {
@@ -676,8 +698,9 @@ Table staffProfile {
   id String [pk]
   organizationId String [not null]
   organization organization [not null]
-  userId String [unique]
-  user user
+  userId String [not null]
+  user user [not null]
+  role SchoolRole [not null]
   employeeId String [not null]
   firstName String [not null]
   lastName String [not null]
@@ -711,6 +734,7 @@ Table staffProfile {
 
   indexes {
     (organizationId, employeeId) [unique]
+    (organizationId, userId) [unique]
   }
 }
 
@@ -750,7 +774,8 @@ Table performanceReview {
   reviewPeriod String [not null]
   rating Int [not null]
   remarks String
-  reviewedBy String
+  reviewedById String [not null]
+  reviewedBy user [not null]
   reviewedAt DateTime [default: `now()`, not null]
 }
 
@@ -1411,9 +1436,11 @@ Table documentRecord {
   organizationId String [not null]
   organization organization [not null]
   category DocumentCategory [not null]
+  type DocumentType [not null]
   name String [not null]
   fileUrl String [not null]
-  uploadedBy String
+  uploadedById String [not null]
+  uploadedBy user [not null]
   uploadedAt DateTime [default: `now()`, not null]
   studentLink studentDocument
   staffLink staffDocument
@@ -1565,6 +1592,22 @@ Enum DocumentCategory {
   OTHER
 }
 
+Enum DocumentType {
+  PDF
+  IMAGE
+  WORD
+  EXCEL
+  OTHER
+}
+
+Enum CertificateFileType {
+  PDF
+  JPG
+  PNG
+  DOC
+  DOCX
+}
+
 Enum BoardType {
   CBSE
   ICSE
@@ -1698,7 +1741,11 @@ Ref: holiday.academicYearId > academicYear.id
 
 Ref: studentProfile.organizationId > organization.id [delete: Cascade]
 
-Ref: studentProfile.userId - user.id
+Ref: studentProfile.userId > user.id
+
+Ref: studentProfile.createdById > user.id
+
+Ref: studentProfile.updatedById > user.id
 
 Ref: studentEnrollment.organizationId > organization.id [delete: Cascade]
 
@@ -1709,6 +1756,12 @@ Ref: studentEnrollment.academicYearId > academicYear.id
 Ref: studentEnrollment.classSectionId > classSection.id
 
 Ref: sectionTransferLog.enrollmentId > studentEnrollment.id [delete: Cascade]
+
+Ref: sectionTransferLog.fromClassSectionId > classSection.id
+
+Ref: sectionTransferLog.toClassSectionId > classSection.id
+
+Ref: sectionTransferLog.transferredById > user.id
 
 Ref: studentPromotion.fromEnrollmentId > studentEnrollment.id
 
@@ -1726,6 +1779,8 @@ Ref: siblingLink.primaryId > studentProfile.id [delete: Cascade]
 
 Ref: siblingLink.siblingId > studentProfile.id [delete: Cascade]
 
+Ref: siblingLink.confirmedById > user.id
+
 Ref: house.organizationId > organization.id [delete: Cascade]
 
 Ref: houseMembership.studentId - studentProfile.id [delete: Cascade]
@@ -1740,9 +1795,11 @@ Ref: clubMembership.clubId > club.id [delete: Cascade]
 
 Ref: certificate.studentId > studentProfile.id [delete: Cascade]
 
+Ref: certificate.issuedById > user.id
+
 Ref: guardian.organizationId > organization.id [delete: Cascade]
 
-Ref: guardian.userId - user.id
+Ref: guardian.userId > user.id
 
 Ref: studentGuardian.studentId > studentProfile.id [delete: Cascade]
 
@@ -1750,7 +1807,7 @@ Ref: studentGuardian.guardianId > guardian.id [delete: Cascade]
 
 Ref: staffProfile.organizationId > organization.id [delete: Cascade]
 
-Ref: staffProfile.userId - user.id
+Ref: staffProfile.userId > user.id
 
 Ref: employeeRecord.organizationId > organization.id [delete: Cascade]
 
@@ -1763,6 +1820,8 @@ Ref: staffDocument.staffId > staffProfile.id [delete: Cascade]
 Ref: staffDocument.documentId - documentRecord.id [delete: Cascade]
 
 Ref: performanceReview.staffId > staffProfile.id [delete: Cascade]
+
+Ref: performanceReview.reviewedById > user.id
 
 Ref: studentAttendance.organizationId > organization.id [delete: Cascade]
 
@@ -1923,6 +1982,8 @@ Ref: healthRecord.organizationId > organization.id [delete: Cascade]
 Ref: healthRecord.studentId > studentProfile.id [delete: Cascade]
 
 Ref: documentRecord.organizationId > organization.id [delete: Cascade]
+
+Ref: documentRecord.uploadedById > user.id [delete: Cascade]
 
 Ref: apiToken.organizationId > organization.id [delete: Cascade]
 

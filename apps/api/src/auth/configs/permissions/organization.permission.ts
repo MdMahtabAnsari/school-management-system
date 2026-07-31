@@ -26,6 +26,11 @@ const statement = {
   student: ["create", "read", "update", "delete", "transfer", "promote", "manageActivities"],
   studentDocument: ["create", "read", "update", "delete"],
   disciplinaryRecord: ["create", "read", "update", "delete"],
+  // Covers both HealthRecord (visit log) and StudentMedicalInfo (baseline
+  // allergies/conditions/medications) — the two models are split in the schema
+  // for data-modeling reasons, but they're managed by the same roles (nurse,
+  // principal-read), so one permission resource is enough. Split it out only
+  // if a role ever needs one but not the other.
   healthRecord: ["create", "read", "update", "delete"],
 
   // Section 4 — Guardians
@@ -35,6 +40,10 @@ const statement = {
   staff: ["create", "read", "update", "delete"],
   employeeRecord: ["create", "read", "update", "delete"],
   performanceReview: ["create", "read", "update", "delete"],
+  // Mirrors studentDocument — kept separate from the generic `document`
+  // resource so a role (e.g. HR) can be scoped to staff files specifically
+  // without also getting student/school document access.
+  staffDocument: ["create", "read", "update", "delete"],
 
   // Section 6 — Attendance
   studentAttendance: ["mark", "read", "update", "delete"],
@@ -71,8 +80,10 @@ const statement = {
   // notice = published announcements; communication = MessageLog/MessageTemplate
   // (SMS/WhatsApp/email sends) — kept separate since audience and workflow differ
   // (one is broadcast content, the other is a transactional send log).
+  // manageTemplate covers MessageTemplate CRUD — split from send/read since
+  // template authoring is a smaller, more sensitive set of roles than sending.
   notice: ["create", "read", "update", "delete", "publish"],
-  communication: ["send", "read"],
+  communication: ["send", "read", "manageTemplate"],
 
   // Section 16 — Homework & learning
   homework: ["create", "read", "update", "delete"],
@@ -126,6 +137,7 @@ const principalPermissions = {
   staff: ["create", "read", "update"],
   employeeRecord: ["read"],
   performanceReview: ["create", "read", "update"],
+  staffDocument: ["read"],
   studentAttendance: ["read", "update"],
   staffAttendance: ["read"],
   leaveRequest: ["read", "approve", "reject"],
@@ -142,7 +154,7 @@ const principalPermissions = {
   ledger: ["read"],
   payroll: ["read"],
   notice: ["create", "read", "update", "delete", "publish"],
-  communication: ["send", "read"],
+  communication: ["send", "read", "manageTemplate"],
   homework: ["read"],
   homeworkSubmission: ["read"],
   lessonPlan: ["read"],
@@ -178,6 +190,7 @@ export const registrar = ac.newRole({
   notice: ["create", "read"],
   communication: ["send", "read"],
   document: ["create", "read", "update", "delete"],
+  schoolEvent: ["read"],
   report: ["read", "export"],
 });
 
@@ -200,8 +213,10 @@ export const teacher = ac.newRole({
   homeworkSubmission: ["read", "grade"],
   lessonPlan: ["create", "read", "update", "delete"],
   notice: ["read"],
+  communication: ["send", "read"],
   document: ["create", "read"],
   schoolEvent: ["read"],
+  report: ["read"],
 });
 
 // Finance & operations -----------------------------------------------------
@@ -231,17 +246,19 @@ export const librarian = ac.newRole({
 
 /**
  * SchoolRole.RECEPTIONIST — front-desk enquiry/admission intake, notices.
- * Added "update" on student: front desk needs to move a record from
+ * "update" on student: front desk needs to move a record from
  * ENQUIRY -> APPLIED and fill in details as an enquiry progresses, not just
- * create-and-walk-away.
+ * create-and-walk-away. "send" on communication: front desk sends
+ * admission/appointment reminders, not just reads the log.
  */
 export const receptionist = ac.newRole({
   student: ["create", "read", "update"],
   guardian: ["create", "read"],
   staff: ["read"],
   notice: ["read"],
-  communication: ["read"],
+  communication: ["send", "read"],
   document: ["create", "read"],
+  schoolEvent: ["read"],
 });
 
 /** SchoolRole.TRANSPORT_MANAGER */
@@ -271,6 +288,7 @@ export const hr = ac.newRole({
   staff: ["create", "read", "update", "delete"],
   employeeRecord: ["create", "read", "update", "delete"],
   performanceReview: ["create", "read", "update"],
+  staffDocument: ["create", "read", "update", "delete"],
   staffAttendance: ["read", "update"],
   leaveRequest: ["read", "approve", "reject"],
   payroll: ["create", "read", "update", "generatePayslip"],
@@ -284,6 +302,7 @@ export const security = ac.newRole({
   staff: ["read"],
   studentAttendance: ["read"],
   notice: ["read"],
+  schoolEvent: ["read"],
 });
 
 /** SchoolRole.SUPPORT_STAFF — minimal, mostly notice/document read access. */
@@ -296,8 +315,10 @@ export const supportStaff = ac.newRole({
 
 /**
  * SchoolRole.STUDENT — self-scoped reads, enforced by row-level ownership at
- * the app layer. Added feeDiscount:read to match the guardian role — a
- * student should be able to see their own scholarship/discount status.
+ * the app layer. feeDiscount:read matches the guardian role — a student
+ * should be able to see their own scholarship/discount status.
+ * communication:read lets a student view their own message history
+ * (SMS/WhatsApp/email sent to them), separate from broadcast notices.
  */
 export const student = ac.newRole({
   student: ["read"],
@@ -313,6 +334,7 @@ export const student = ac.newRole({
   transport: ["read"],
   hostel: ["read"],
   notice: ["read"],
+  communication: ["read"],
   document: ["read"],
   schoolEvent: ["read"],
 });
@@ -331,6 +353,7 @@ export const guardian = ac.newRole({
   transport: ["read"],
   hostel: ["read"],
   notice: ["read"],
+  communication: ["read"],
   document: ["read"],
   schoolEvent: ["read"],
   disciplinaryRecord: ["read"],

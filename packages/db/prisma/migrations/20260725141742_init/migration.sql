@@ -1,9 +1,6 @@
-/*
-  Warnings:
+-- CreateEnum
+CREATE TYPE "Role" AS ENUM ('ADMIN', 'SCHOOL_ADMIN', 'USER');
 
-  - The values [SUPER_ADMIN,TEACHER,CLASS_TEACHER,STUDENT,PARENT,ACCOUNTANT,LIBRARIAN,RECEPTIONIST,HR_MANAGER,EXAM_CONTROLLER,TRANSPORT_MANAGER] on the enum `Role` will be removed. If these variants are still used in the database, this will fail.
-
-*/
 -- CreateEnum
 CREATE TYPE "SchoolRole" AS ENUM ('ADMIN', 'SCHOOL_ADMIN', 'PRINCIPAL', 'VICE_PRINCIPAL', 'REGISTRAR', 'TEACHER', 'ACCOUNTANT', 'LIBRARIAN', 'RECEPTIONIST', 'TRANSPORT_MANAGER', 'HOSTEL_WARDEN', 'NURSE', 'HR', 'SECURITY', 'SUPPORT_STAFF', 'STUDENT', 'GUARDIAN');
 
@@ -55,18 +52,86 @@ CREATE TYPE "NoticeAudience" AS ENUM ('ALL', 'STUDENTS', 'GUARDIANS', 'STAFF', '
 -- CreateEnum
 CREATE TYPE "MessageChannel" AS ENUM ('SMS', 'EMAIL', 'WHATSAPP', 'PUSH', 'IN_APP');
 
--- AlterEnum
-BEGIN;
-CREATE TYPE "Role_new" AS ENUM ('ADMIN', 'SCHOOL_ADMIN', 'USER');
-ALTER TABLE "user" ALTER COLUMN "role" TYPE "Role_new" USING ("role"::text::"Role_new");
-ALTER TYPE "Role" RENAME TO "Role_old";
-ALTER TYPE "Role_new" RENAME TO "Role";
-DROP TYPE "public"."Role_old";
-COMMIT;
+-- CreateTable
+CREATE TABLE "user" (
+    "id" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "email" TEXT NOT NULL,
+    "emailVerified" BOOLEAN NOT NULL DEFAULT false,
+    "image" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "twoFactorEnabled" BOOLEAN DEFAULT false,
+    "username" TEXT,
+    "displayUsername" TEXT,
+    "role" "Role",
+    "banned" BOOLEAN DEFAULT false,
+    "banReason" TEXT,
+    "banExpires" TIMESTAMP(3),
 
--- AlterTable
-ALTER TABLE "session" ADD COLUMN     "activeOrganizationId" TEXT,
-ADD COLUMN     "activeTeamId" TEXT;
+    CONSTRAINT "user_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "session" (
+    "id" TEXT NOT NULL,
+    "expiresAt" TIMESTAMP(3) NOT NULL,
+    "token" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "ipAddress" TEXT,
+    "userAgent" TEXT,
+    "userId" TEXT NOT NULL,
+    "impersonatedBy" TEXT,
+    "activeOrganizationId" TEXT,
+    "activeTeamId" TEXT,
+
+    CONSTRAINT "session_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "account" (
+    "id" TEXT NOT NULL,
+    "accountId" TEXT NOT NULL,
+    "providerId" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "accessToken" TEXT,
+    "refreshToken" TEXT,
+    "idToken" TEXT,
+    "accessTokenExpiresAt" TIMESTAMP(3),
+    "refreshTokenExpiresAt" TIMESTAMP(3),
+    "scope" TEXT,
+    "password" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "account_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "verification" (
+    "id" TEXT NOT NULL,
+    "identifier" TEXT NOT NULL,
+    "value" TEXT NOT NULL,
+    "expiresAt" TIMESTAMP(3) NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "verification_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "twoFactor" (
+    "id" TEXT NOT NULL,
+    "secret" TEXT NOT NULL,
+    "backupCodes" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "verified" BOOLEAN DEFAULT true,
+    "failedVerificationCount" INTEGER DEFAULT 0,
+    "lockedUntil" TIMESTAMP(3),
+
+    CONSTRAINT "twoFactor_pkey" PRIMARY KEY ("id")
+);
 
 -- CreateTable
 CREATE TABLE "organization" (
@@ -317,7 +382,7 @@ CREATE TABLE "holiday" (
 CREATE TABLE "studentProfile" (
     "id" TEXT NOT NULL,
     "organizationId" TEXT NOT NULL,
-    "userId" TEXT,
+    "userId" TEXT NOT NULL,
     "admissionNumber" TEXT NOT NULL,
     "firstName" TEXT NOT NULL,
     "lastName" TEXT NOT NULL,
@@ -335,8 +400,8 @@ CREATE TABLE "studentProfile" (
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
     "deletedAt" TIMESTAMP(3),
-    "createdBy" TEXT,
-    "updatedBy" TEXT,
+    "createdById" TEXT,
+    "updatedById" TEXT,
 
     CONSTRAINT "studentProfile_pkey" PRIMARY KEY ("id")
 );
@@ -492,7 +557,7 @@ CREATE TABLE "certificate" (
 CREATE TABLE "guardian" (
     "id" TEXT NOT NULL,
     "organizationId" TEXT NOT NULL,
-    "userId" TEXT,
+    "userId" TEXT NOT NULL,
     "firstName" TEXT NOT NULL,
     "lastName" TEXT NOT NULL,
     "phone" TEXT NOT NULL,
@@ -531,7 +596,7 @@ CREATE TABLE "studentGuardian" (
 CREATE TABLE "staffProfile" (
     "id" TEXT NOT NULL,
     "organizationId" TEXT NOT NULL,
-    "userId" TEXT,
+    "userId" TEXT NOT NULL,
     "employeeId" TEXT NOT NULL,
     "firstName" TEXT NOT NULL,
     "lastName" TEXT NOT NULL,
@@ -1243,6 +1308,30 @@ CREATE TABLE "auditLog" (
 );
 
 -- CreateIndex
+CREATE UNIQUE INDEX "user_email_key" ON "user"("email");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "user_username_key" ON "user"("username");
+
+-- CreateIndex
+CREATE INDEX "session_userId_idx" ON "session"("userId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "session_token_key" ON "session"("token");
+
+-- CreateIndex
+CREATE INDEX "account_userId_idx" ON "account"("userId");
+
+-- CreateIndex
+CREATE INDEX "verification_identifier_idx" ON "verification"("identifier");
+
+-- CreateIndex
+CREATE INDEX "twoFactor_secret_idx" ON "twoFactor"("secret");
+
+-- CreateIndex
+CREATE INDEX "twoFactor_userId_idx" ON "twoFactor"("userId");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "organization_slug_key" ON "organization"("slug");
 
 -- CreateIndex
@@ -1351,9 +1440,6 @@ CREATE INDEX "holiday_organizationId_idx" ON "holiday"("organizationId");
 CREATE UNIQUE INDEX "holiday_organizationId_date_key" ON "holiday"("organizationId", "date");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "studentProfile_userId_key" ON "studentProfile"("userId");
-
--- CreateIndex
 CREATE INDEX "studentProfile_organizationId_idx" ON "studentProfile"("organizationId");
 
 -- CreateIndex
@@ -1364,6 +1450,9 @@ CREATE INDEX "studentProfile_dateOfBirth_idx" ON "studentProfile"("dateOfBirth")
 
 -- CreateIndex
 CREATE UNIQUE INDEX "studentProfile_organizationId_admissionNumber_key" ON "studentProfile"("organizationId", "admissionNumber");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "studentProfile_organizationId_userId_key" ON "studentProfile"("organizationId", "userId");
 
 -- CreateIndex
 CREATE INDEX "studentEnrollment_organizationId_idx" ON "studentEnrollment"("organizationId");
@@ -1426,9 +1515,6 @@ CREATE INDEX "certificate_studentId_idx" ON "certificate"("studentId");
 CREATE UNIQUE INDEX "certificate_organizationId_type_serialNumber_key" ON "certificate"("organizationId", "type", "serialNumber");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "guardian_userId_key" ON "guardian"("userId");
-
--- CreateIndex
 CREATE INDEX "guardian_organizationId_idx" ON "guardian"("organizationId");
 
 -- CreateIndex
@@ -1436,6 +1522,9 @@ CREATE INDEX "guardian_phone_idx" ON "guardian"("phone");
 
 -- CreateIndex
 CREATE INDEX "guardian_email_idx" ON "guardian"("email");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "guardian_organizationId_userId_key" ON "guardian"("organizationId", "userId");
 
 -- CreateIndex
 CREATE INDEX "studentGuardian_guardianId_idx" ON "studentGuardian"("guardianId");
@@ -1447,9 +1536,6 @@ CREATE INDEX "studentGuardian_studentId_idx" ON "studentGuardian"("studentId");
 CREATE UNIQUE INDEX "studentGuardian_studentId_guardianId_key" ON "studentGuardian"("studentId", "guardianId");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "staffProfile_userId_key" ON "staffProfile"("userId");
-
--- CreateIndex
 CREATE INDEX "staffProfile_organizationId_idx" ON "staffProfile"("organizationId");
 
 -- CreateIndex
@@ -1457,6 +1543,9 @@ CREATE INDEX "staffProfile_organizationId_status_idx" ON "staffProfile"("organiz
 
 -- CreateIndex
 CREATE UNIQUE INDEX "staffProfile_organizationId_employeeId_key" ON "staffProfile"("organizationId", "employeeId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "staffProfile_organizationId_userId_key" ON "staffProfile"("organizationId", "userId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "employeeRecord_staffId_key" ON "employeeRecord"("staffId");
@@ -1756,6 +1845,15 @@ CREATE INDEX "auditLog_entityType_entityId_idx" ON "auditLog"("entityType", "ent
 CREATE INDEX "auditLog_organizationId_createdAt_idx" ON "auditLog"("organizationId", "createdAt");
 
 -- AddForeignKey
+ALTER TABLE "session" ADD CONSTRAINT "session_userId_fkey" FOREIGN KEY ("userId") REFERENCES "user"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "account" ADD CONSTRAINT "account_userId_fkey" FOREIGN KEY ("userId") REFERENCES "user"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "twoFactor" ADD CONSTRAINT "twoFactor_userId_fkey" FOREIGN KEY ("userId") REFERENCES "user"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "organizationRole" ADD CONSTRAINT "organizationRole_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "organization"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -1861,7 +1959,13 @@ ALTER TABLE "holiday" ADD CONSTRAINT "holiday_academicYearId_fkey" FOREIGN KEY (
 ALTER TABLE "studentProfile" ADD CONSTRAINT "studentProfile_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "organization"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "studentProfile" ADD CONSTRAINT "studentProfile_userId_fkey" FOREIGN KEY ("userId") REFERENCES "user"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "studentProfile" ADD CONSTRAINT "studentProfile_userId_fkey" FOREIGN KEY ("userId") REFERENCES "user"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "studentProfile" ADD CONSTRAINT "studentProfile_createdById_fkey" FOREIGN KEY ("createdById") REFERENCES "user"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "studentProfile" ADD CONSTRAINT "studentProfile_updatedById_fkey" FOREIGN KEY ("updatedById") REFERENCES "user"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "studentEnrollment" ADD CONSTRAINT "studentEnrollment_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "organization"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -1927,7 +2031,7 @@ ALTER TABLE "certificate" ADD CONSTRAINT "certificate_studentId_fkey" FOREIGN KE
 ALTER TABLE "guardian" ADD CONSTRAINT "guardian_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "organization"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "guardian" ADD CONSTRAINT "guardian_userId_fkey" FOREIGN KEY ("userId") REFERENCES "user"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "guardian" ADD CONSTRAINT "guardian_userId_fkey" FOREIGN KEY ("userId") REFERENCES "user"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "studentGuardian" ADD CONSTRAINT "studentGuardian_studentId_fkey" FOREIGN KEY ("studentId") REFERENCES "studentProfile"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -1939,7 +2043,7 @@ ALTER TABLE "studentGuardian" ADD CONSTRAINT "studentGuardian_guardianId_fkey" F
 ALTER TABLE "staffProfile" ADD CONSTRAINT "staffProfile_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "organization"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "staffProfile" ADD CONSTRAINT "staffProfile_userId_fkey" FOREIGN KEY ("userId") REFERENCES "user"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "staffProfile" ADD CONSTRAINT "staffProfile_userId_fkey" FOREIGN KEY ("userId") REFERENCES "user"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "employeeRecord" ADD CONSTRAINT "employeeRecord_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "organization"("id") ON DELETE CASCADE ON UPDATE CASCADE;

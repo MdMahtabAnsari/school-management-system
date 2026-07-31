@@ -52,10 +52,18 @@ model User {
   invitations      Invitation[]
 
   // Reverse relations into school-domain models where a User is the human behind a role
-  staffProfile     StaffProfile?
-  guardianProfile  Guardian?
-  studentProfile   StudentProfile?
-  auditLogsActedBy AuditLog[]      @relation("AuditLogActor")
+  staffProfile            StaffProfile[]
+  guardianProfile         Guardian[]
+  studentProfile          StudentProfile[]
+  auditLogsActedBy        AuditLog[]       @relation("AuditLogActor")
+  studentProfileCreatedBy StudentProfile[] @relation("StudentProfileCreatedBy")
+  studentProfileUpdatedBy StudentProfile[] @relation("StudentProfileUpdatedBy")
+  studentTransferBy       SectionTransferLog[]
+  documentsUploadedBy     DocumentRecord[]
+  siblingConfirmedBy       SiblingLink[]
+  certificatesIssuedBy      Certificate[]
+  performanceReviewedBy   PerformanceReview[]
+
 
   @@unique([email])
   @@unique([username])
@@ -397,6 +405,22 @@ enum DocumentCategory {
   OTHER
 }
 
+enum DocumentType {
+  PDF
+  IMAGE
+  WORD
+  EXCEL
+  OTHER
+}
+
+enum CertificateFileType {
+  PDF
+  JPG
+  PNG
+  DOC
+  DOCX
+}
+
 enum BoardType {
   CBSE
   ICSE
@@ -601,6 +625,8 @@ model ClassSection {
   timetableSlots TimetableSlot[]
   homework       Homework[]
   lessonPlans    LessonPlan[]
+  fromClassTransfers SectionTransferLog[] @relation("TransferFrom")
+  toClassTransfers   SectionTransferLog[] @relation("TransferTo")
 
   @@unique([academicYearId, gradeLevelId, name])
   @@index([organizationId])
@@ -745,8 +771,8 @@ model StudentProfile {
   id             String       @id @default(uuid())
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  userId         String?      @unique // set once student portal login is provisioned
-  user           User?        @relation(fields: [userId], references: [id])
+  userId         String
+  user           User        @relation(fields: [userId], references: [id])
 
   admissionNumber  String
   firstName        String
@@ -766,8 +792,10 @@ model StudentProfile {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   deletedAt     DateTime?
-  createdBy     String?
-  updatedBy     String?
+  createdById   String
+  createdBy     User     @relation("StudentProfileCreatedBy", fields: [createdById], references: [id])
+  updatedById   String?
+  updatedBy     User?     @relation("StudentProfileUpdatedBy", fields: [updatedById], references: [id])
 
   enrollments           StudentEnrollment[]
   guardianLinks         StudentGuardian[]
@@ -791,6 +819,7 @@ model StudentProfile {
   siblingLinksAsSibling SiblingLink[]                @relation("SiblingOf")
 
   @@unique([organizationId, admissionNumber])
+  @@unique([organizationId, userId])
   @@index([organizationId])
   @@index([organizationId, status])
   @@index([dateOfBirth])
@@ -835,12 +864,15 @@ model SectionTransferLog {
   enrollmentId       String
   enrollment         StudentEnrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
   fromClassSectionId String
+  fromClassSection   ClassSection      @relation("TransferFrom", fields: [fromClassSectionId], references: [id])
   toClassSectionId   String
+  toClassSection     ClassSection      @relation("TransferTo", fields: [toClassSectionId], references: [id])
   fromRollNumber     String
   toRollNumber       String
   reason             String?
   transferredAt      DateTime          @default(now())
-  transferredBy      String?
+  transferredById     String
+  transferredBy       User              @relation(fields: [transferredById], references: [id])
 
   @@index([enrollmentId])
   @@map("sectionTransferLog")
@@ -914,7 +946,8 @@ model SiblingLink {
   primary     StudentProfile @relation("SiblingPrimary", fields: [primaryId], references: [id], onDelete: Cascade)
   siblingId   String
   sibling     StudentProfile @relation("SiblingOf", fields: [siblingId], references: [id], onDelete: Cascade)
-  confirmedBy String?
+  confirmedById String
+  confirmedBy   User          @relation(fields: [confirmedById], references: [id])
   createdAt   DateTime       @default(now())
 
   @@unique([primaryId, siblingId])
@@ -980,8 +1013,10 @@ model Certificate {
   type           String // "TRANSFER_CERTIFICATE" | "LEAVING_CERTIFICATE" | "BONAFIDE" | etc
   serialNumber   String
   issuedAt       DateTime       @default(now())
-  issuedBy       String?
+  issuedById      String
+  issuedBy        User           @relation(fields: [issuedById], references: [id])
   fileUrl        String?
+  fileType       CertificateFileType?
 
   @@unique([organizationId, type, serialNumber])
   @@index([studentId])
@@ -998,8 +1033,8 @@ model Guardian {
   id             String       @id @default(uuid())
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  userId         String?      @unique // set once guardian portal login is provisioned
-  user           User?        @relation(fields: [userId], references: [id])
+  userId         String
+  user           User        @relation(fields: [userId], references: [id])
 
   firstName        String
   lastName         String
@@ -1022,6 +1057,7 @@ model Guardian {
   studentLinks StudentGuardian[]
 
   @@index([organizationId])
+  @@unique([organizationId, userId])
   @@index([phone])
   @@index([email])
   @@map("guardian")
@@ -1059,9 +1095,10 @@ model StaffProfile {
   id             String       @id @default(uuid())
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  userId         String?      @unique
-  user           User?        @relation(fields: [userId], references: [id])
-
+  userId         String
+  user           User        @relation(fields: [userId], references: [id])
+   
+  role            SchoolRole
   employeeId      String
   firstName       String
   lastName        String
@@ -1096,6 +1133,7 @@ model StaffProfile {
   disciplinaryRecordsRaised DisciplinaryRecord[] @relation("RaisedByStaff")
 
   @@unique([organizationId, employeeId])
+  @@unique([organizationId, userId])
   @@index([organizationId])
   @@index([organizationId, status])
   @@map("staffProfile")
@@ -1150,7 +1188,8 @@ model PerformanceReview {
   reviewPeriod   String // "2025-26 Annual", "Q1 2026"
   rating         Int // 1-5
   remarks        String?
-  reviewedBy     String?
+  reviewedById     String
+  reviewedBy       User          @relation(fields: [reviewedById], references: [id])
   reviewedAt     DateTime     @default(now())
 
   @@index([organizationId])
@@ -1277,10 +1316,10 @@ model ExamSubject {
   examSession       ExamSession @relation(fields: [examSessionId], references: [id], onDelete: Cascade)
   subjectId         String
   subject           Subject     @relation(fields: [subjectId], references: [id])
-  maxMarksTheory    Decimal     @db.Decimal(6, 2) @default(100)
+  maxMarksTheory    Decimal     @default(100) @db.Decimal(6, 2)
   maxMarksPractical Decimal?    @db.Decimal(6, 2)
   maxMarksInternal  Decimal?    @db.Decimal(6, 2)
-  passMarks         Decimal     @db.Decimal(6, 2) @default(33)
+  passMarks         Decimal     @default(33) @db.Decimal(6, 2)
   examDate          DateTime?
 
   results ExamResult[]
@@ -1394,9 +1433,9 @@ model Invoice {
   student        StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
   invoiceNumber  String
   totalAmount    Decimal        @db.Decimal(12, 2)
-  discountAmount Decimal        @db.Decimal(12, 2) @default(0)
-  fineAmount     Decimal        @db.Decimal(12, 2) @default(0)
-  paidAmount     Decimal        @db.Decimal(12, 2) @default(0)
+  discountAmount Decimal        @default(0) @db.Decimal(12, 2)
+  fineAmount     Decimal        @default(0) @db.Decimal(12, 2)
+  paidAmount     Decimal        @default(0) @db.Decimal(12, 2)
   status         InvoiceStatus  @default(ISSUED)
   dueDate        DateTime
   issuedAt       DateTime       @default(now())
@@ -1439,7 +1478,7 @@ model Receipt {
   paymentMode    PaymentMode
   transactionRef String? // gateway/cheque/UPI reference
   paidAt         DateTime     @default(now())
-  refundedAmount Decimal      @db.Decimal(12, 2) @default(0)
+  refundedAmount Decimal      @default(0) @db.Decimal(12, 2)
   createdAt      DateTime     @default(now())
 
   @@unique([organizationId, receiptNumber])
@@ -1662,7 +1701,7 @@ model BookIssue {
   issuedAt       DateTime     @default(now())
   dueDate        DateTime
   returnedAt     DateTime?
-  fineAmount     Decimal      @db.Decimal(8, 2) @default(0)
+  fineAmount     Decimal      @default(0) @db.Decimal(8, 2)
 
   @@index([organizationId])
   @@index([bookId])
@@ -1781,7 +1820,7 @@ model Budget {
   organizationId  String
   category        String
   allocatedAmount Decimal @db.Decimal(12, 2)
-  spentAmount     Decimal @db.Decimal(12, 2) @default(0)
+  spentAmount     Decimal @default(0) @db.Decimal(12, 2)
   fiscalYear      String
 
   @@unique([organizationId, category, fiscalYear])
@@ -1819,7 +1858,7 @@ model Payslip {
   month             Int
   year              Int
   grossPay          Decimal          @db.Decimal(12, 2)
-  totalDeductions   Decimal          @db.Decimal(12, 2) @default(0)
+  totalDeductions   Decimal          @default(0) @db.Decimal(12, 2)
   netPay            Decimal          @db.Decimal(12, 2)
   status            String           @default("GENERATED") // GENERATED | PAID
   generatedAt       DateTime         @default(now())
@@ -2011,9 +2050,11 @@ model DocumentRecord {
   organizationId String
   organization   Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   category       DocumentCategory
+  type           DocumentType
   name           String
   fileUrl        String
-  uploadedBy     String?
+  uploadedById   String
+  uploadedBy     User             @relation( fields: [uploadedById], references: [id], onDelete: Cascade)
   uploadedAt     DateTime         @default(now())
 
   studentLink StudentDocument?

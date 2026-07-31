@@ -7,6 +7,7 @@ import {ClassSectionRepository} from '@/class-section/class-section.repository';
 @Module({
   controllers: [ClassSectionController],
   providers: [ClassSectionService, ClassSectionRepository],
-  imports: [PrismaModule]
+  imports: [PrismaModule],
+  exports: [ClassSectionService, ClassSectionRepository]
 })
 export class ClassSectionModule {}
