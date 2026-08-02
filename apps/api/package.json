@@ -22,6 +22,7 @@
     "auth:migrate": "pnpm dlx @better-auth/cli@latest migrate --config ./src/auth/configs/auth.ts --output ../../packages/db/prisma/schema.prisma --yes"
   },
   "dependencies": {
+    "@date-fns/tz": "^1.5.0",
     "@nestjs-cls/transactional": "^3.2.1",
     "@nestjs-cls/transactional-adapter-prisma": "^1.3.5",
     "@nestjs/common": "^11.0.1",
@@ -31,16 +32,18 @@
     "@nestjs/swagger": "^11.4.6",
     "@prisma/adapter-pg": "^7.8.0",
     "@thallesp/nestjs-better-auth": "^2.7.0",
+    "@workspace/auth": "workspace:*",
     "@workspace/db": "workspace:*",
-    "better-auth": "^1.6.23",
+    "better-auth": "^1.6.25",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.15.1",
+    "date-fns": "^4.4.0",
     "helmet": "^8.3.0",
     "nestjs-cls": "^6.2.1",
+    "nestjs-spelunker": "^1.3.2",
     "pg": "^8.22.0",
     "reflect-metadata": "^0.2.2",
-    "rxjs": "^7.8.1",
-    "zod": "^4.4.3"
+    "rxjs": "^7.8.1"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.2.0",

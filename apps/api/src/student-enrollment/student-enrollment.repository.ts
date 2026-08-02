@@ -4,6 +4,7 @@ import { TransactionHost } from '@nestjs-cls/transactional';
 import { PrismaService } from '@/prisma/prisma.service';
 import { CreateStudentEnrollmentDto } from '@/student-enrollment/dto/create-student-enrollment.dto';
 import { UpdateStudentEnrollmentDto } from '@/student-enrollment/dto/update-student-enrollment.dto';
+import { EnrollmentStatus } from '@workspace/db/generated/prisma/cjs/enums';
 
 @Injectable()
 export class StudentEnrollmentRepository {
@@ -46,6 +47,15 @@ export class StudentEnrollmentRepository {
     async getStudentEnrollmentById(id: string) {
         return this.prisma.tx.studentEnrollment.findUnique({
             where: { id },
+        });
+    }
+
+    async getStudentEnrollmentByStudentIdAndStatus(studentId: string, status: EnrollmentStatus) {
+        return this.prisma.tx.studentEnrollment.findFirst({
+            where: {
+                studentId,
+                status,
+            },
         });
     }
 }

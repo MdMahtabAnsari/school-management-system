@@ -32,4 +32,20 @@ export class HolidayService {
         }
         return holiday;
     }
+
+    async getHolidayByDate(orgId: string, date: string) {
+        const holiday = await this.holidayRepository.getHolidayByOrgIdAndDate(orgId, date);
+        if (!holiday) {
+            throw new NotFoundException('Holiday not found');
+        }
+        return holiday;
+    }
+
+    async getHolidayByAcademicYearAndDate(orgId: string, date: string, academicYearId?: string) {
+        const holiday = await this.holidayRepository.getHolidayByOrgIdAndAcademicYearAndDate(orgId, date, academicYearId);
+        if (!holiday) {
+            throw new NotFoundException('Holiday not found');
+        }
+        return holiday;
+    }
 }

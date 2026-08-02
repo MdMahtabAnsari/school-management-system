@@ -13,13 +13,13 @@ import {
   organization,
 } from 'better-auth/plugins';
 import { prisma } from '@workspace/db/nestjs';
-import { username as usernameSchema } from '@/auth/configs/common';
+import { username as usernameSchema } from './common.js';
 import {
   admin,
   schoolAdmin,
   user,
   ac,
-} from '@/auth/configs/permissions/admin.permission';
+} from './permissions/admin.permission.js';
 import {
   ac as orgAc,
   admin as orgAdmin,
@@ -39,7 +39,7 @@ import {
   supportStaff,
   student,
   guardian,
-} from '@/auth/configs/permissions/organization.permission';
+} from './permissions/organization.permission.js';
 import {Role,SchoolRole} from '@workspace/db/generated/prisma/cjs/enums';
 
 export const auth = betterAuth({

@@ -45,5 +45,23 @@ export class HolidayRepository {
             where: { id },
         });
     }
-}
 
+    async getHolidayByOrgIdAndDate(orgId: string, date: string) {
+        return this.prisma.tx.holiday.findFirst({
+            where: {
+                organizationId: orgId,
+                date: date,
+            },
+        });
+    }
+
+    async getHolidayByOrgIdAndAcademicYearAndDate(orgId: string, date: string, academicYearId?: string) {
+        return this.prisma.tx.holiday.findFirst({
+            where: {
+                organizationId: orgId,
+                academicYearId,
+                date: date,
+            },
+        });
+    }
+}

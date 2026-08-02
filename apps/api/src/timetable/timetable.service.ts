@@ -32,4 +32,15 @@ export class TimetableService {
         }
         return timetable;
     }
+
+    async getTimetableByAcademicYear(academicYearId: string, orgId: string) {
+        const timetable = await this.timetableRepository.getTimetableByAcademicYear(academicYearId);
+        if (!timetable) {
+            throw new NotFoundException('Timetable not found');
+        }
+        if (timetable.organizationId !== orgId) {
+            throw new ForbiddenException('You are not the owner of this timetable');
+        }
+        return timetable;
+    }
 }

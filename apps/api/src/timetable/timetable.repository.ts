@@ -40,6 +40,14 @@ export class TimetableRepository {
             where: { id },
         });
     }
+
+    async getTimetableByAcademicYear(academicYearId: string) {
+        return this.prisma.tx.timetable.findFirst({
+            where: {
+                academicYearId: academicYearId,
+            },
+        });
+    }
 }
 
 

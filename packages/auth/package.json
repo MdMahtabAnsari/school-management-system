@@ -1,0 +1,30 @@
+{
+  "name": "@workspace/auth",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "auth:generate": "pnpm dlx @better-auth/cli@latest generate --config ./src/auth.ts --output ../db/prisma/schema.prisma --yes",
+    "auth:migrate": "pnpm dlx @better-auth/cli@latest migrate --config ./src/auth.ts --output ../db/prisma/schema.prisma --yes",
+    "build": "tsc"
+  },
+  "type": "module",
+  "devDependencies": {
+    "@workspace/typescript-config": "workspace:*",
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "better-auth": "^1.6.25",
+    "dotenv": "^17.4.2",
+    "zod": "^4.4.3",
+    "@workspace/db": "workspace:*"
+  },
+
+  "exports": {
+    "./*":{
+      "types": "./src/*.ts",
+      "default": "./dist/*.js"
+    }
+
+  }
+}

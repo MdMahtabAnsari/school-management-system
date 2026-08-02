@@ -4,6 +4,7 @@ import {CreateStudentEnrollmentDto} from "@/student-enrollment/dto/create-studen
 import {UpdateStudentEnrollmentDto} from "@/student-enrollment/dto/update-student-enrollment.dto";
 import { ClassSectionRepository } from '@/class-section/class-section.repository';
 import {Transactional} from "@nestjs-cls/transactional";
+import { EnrollmentStatus } from '@workspace/db/generated/prisma/cjs/enums';
 
 @Injectable()
 export class StudentEnrollmentService {
@@ -42,6 +43,17 @@ export class StudentEnrollmentService {
 
     async getStudentEnrollmentById(id: string, orgId:string) {
         const existingEnrollment = await this.studentEnrollmentRepository.getStudentEnrollmentById(id);
+        if (!existingEnrollment) {
+            throw new NotFoundException('Student enrollment not found');
+        }
+        if (existingEnrollment.organizationId !== orgId) {
+            throw new ForbiddenException('You do not have permission to view this student enrollment');
+        }
+        return existingEnrollment;
+    }
+
+    async getStudentEnrollmentByStudentIdAndStatus(studentId: string, status: EnrollmentStatus, orgId:string) {
+        const existingEnrollment = await this.studentEnrollmentRepository.getStudentEnrollmentByStudentIdAndStatus(studentId, status);
         if (!existingEnrollment) {
             throw new NotFoundException('Student enrollment not found');
         }

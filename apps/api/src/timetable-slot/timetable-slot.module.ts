@@ -8,5 +8,6 @@ import { TimetableSlotRepository } from '@/timetable-slot/timetable-slot.reposit
   controllers: [TimetableSlotController],
   providers: [TimetableSlotService, TimetableSlotRepository],
   imports: [PrismaModule],
+  exports: [TimetableSlotService, TimetableSlotRepository]
 })
 export class TimetableSlotModule {}

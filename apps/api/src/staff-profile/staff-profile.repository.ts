@@ -74,4 +74,13 @@ export class StaffProfileRepository {
         });
     }
 
+    async getStaffProfileByOrgIdAndUserId(orgId: string, userId: string) {
+        return this.prisma.tx.staffProfile.findFirst({
+            where: {
+                organizationId: orgId,
+                userId: userId,
+            },
+        });
+    }
+
 }

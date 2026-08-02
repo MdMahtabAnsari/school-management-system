@@ -55,15 +55,15 @@ model User {
   staffProfile            StaffProfile[]
   guardianProfile         Guardian[]
   studentProfile          StudentProfile[]
-  auditLogsActedBy        AuditLog[]       @relation("AuditLogActor")
-  studentProfileCreatedBy StudentProfile[] @relation("StudentProfileCreatedBy")
-  studentProfileUpdatedBy StudentProfile[] @relation("StudentProfileUpdatedBy")
+  auditLogsActedBy        AuditLog[]           @relation("AuditLogActor")
+  studentProfileCreatedBy StudentProfile[]     @relation("StudentProfileCreatedBy")
+  studentProfileUpdatedBy StudentProfile[]     @relation("StudentProfileUpdatedBy")
   studentTransferBy       SectionTransferLog[]
   documentsUploadedBy     DocumentRecord[]
-  siblingConfirmedBy       SiblingLink[]
-  certificatesIssuedBy      Certificate[]
+  siblingConfirmedBy      SiblingLink[]
+  certificatesIssuedBy    Certificate[]
   performanceReviewedBy   PerformanceReview[]
-
+  attendanceMarkedBy      StudentAttendance[]
 
   @@unique([email])
   @@unique([username])
@@ -620,11 +620,11 @@ model ClassSection {
   updatedAt      DateTime      @updatedAt
   deletedAt      DateTime?
 
-  enrollments    StudentEnrollment[]
-  subjectGroups  SubjectGroup[]
-  timetableSlots TimetableSlot[]
-  homework       Homework[]
-  lessonPlans    LessonPlan[]
+  enrollments        StudentEnrollment[]
+  subjectGroups      SubjectGroup[]
+  timetableSlots     TimetableSlot[]
+  homework           Homework[]
+  lessonPlans        LessonPlan[]
   fromClassTransfers SectionTransferLog[] @relation("TransferFrom")
   toClassTransfers   SectionTransferLog[] @relation("TransferTo")
 
@@ -698,7 +698,8 @@ model Period {
   endTime        String
   sequence       Int
 
-  timetableSlots TimetableSlot[]
+  timetableSlots    TimetableSlot[]
+  attendanceRecords StudentAttendance[]
 
   @@unique([organizationId, sequence])
   @@index([organizationId])
@@ -753,7 +754,7 @@ model Holiday {
   academicYearId String?
   academicYear   AcademicYear? @relation(fields: [academicYearId], references: [id])
   name           String
-  date           DateTime
+  date           DateTime      @db.Date
   isWorkingDay   Boolean       @default(false)
 
   @@unique([organizationId, date])
@@ -772,7 +773,7 @@ model StudentProfile {
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   userId         String
-  user           User        @relation(fields: [userId], references: [id])
+  user           User         @relation(fields: [userId], references: [id])
 
   admissionNumber  String
   firstName        String
@@ -793,7 +794,7 @@ model StudentProfile {
   updatedAt     DateTime  @updatedAt
   deletedAt     DateTime?
   createdById   String
-  createdBy     User     @relation("StudentProfileCreatedBy", fields: [createdById], references: [id])
+  createdBy     User      @relation("StudentProfileCreatedBy", fields: [createdById], references: [id])
   updatedById   String?
   updatedBy     User?     @relation("StudentProfileUpdatedBy", fields: [updatedById], references: [id])
 
@@ -871,8 +872,8 @@ model SectionTransferLog {
   toRollNumber       String
   reason             String?
   transferredAt      DateTime          @default(now())
-  transferredById     String
-  transferredBy       User              @relation(fields: [transferredById], references: [id])
+  transferredById    String
+  transferredBy      User              @relation(fields: [transferredById], references: [id])
 
   @@index([enrollmentId])
   @@map("sectionTransferLog")
@@ -941,14 +942,14 @@ model StudentMedicalInfo {
 /// this table only stores EXPLICIT overrides/confirmations, not the inference itself.
 
 model SiblingLink {
-  id          String         @id @default(uuid())
-  primaryId   String
-  primary     StudentProfile @relation("SiblingPrimary", fields: [primaryId], references: [id], onDelete: Cascade)
-  siblingId   String
-  sibling     StudentProfile @relation("SiblingOf", fields: [siblingId], references: [id], onDelete: Cascade)
+  id            String         @id @default(uuid())
+  primaryId     String
+  primary       StudentProfile @relation("SiblingPrimary", fields: [primaryId], references: [id], onDelete: Cascade)
+  siblingId     String
+  sibling       StudentProfile @relation("SiblingOf", fields: [siblingId], references: [id], onDelete: Cascade)
   confirmedById String
-  confirmedBy   User          @relation(fields: [confirmedById], references: [id])
-  createdAt   DateTime       @default(now())
+  confirmedBy   User           @relation(fields: [confirmedById], references: [id])
+  createdAt     DateTime       @default(now())
 
   @@unique([primaryId, siblingId])
   @@map("siblingLink")
@@ -1006,15 +1007,15 @@ model ClubMembership {
 }
 
 model Certificate {
-  id             String         @id @default(uuid())
+  id             String               @id @default(uuid())
   organizationId String
   studentId      String
-  student        StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  student        StudentProfile       @relation(fields: [studentId], references: [id], onDelete: Cascade)
   type           String // "TRANSFER_CERTIFICATE" | "LEAVING_CERTIFICATE" | "BONAFIDE" | etc
   serialNumber   String
-  issuedAt       DateTime       @default(now())
-  issuedById      String
-  issuedBy        User           @relation(fields: [issuedById], references: [id])
+  issuedAt       DateTime             @default(now())
+  issuedById     String
+  issuedBy       User                 @relation(fields: [issuedById], references: [id])
   fileUrl        String?
   fileType       CertificateFileType?
 
@@ -1034,7 +1035,7 @@ model Guardian {
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   userId         String
-  user           User        @relation(fields: [userId], references: [id])
+  user           User         @relation(fields: [userId], references: [id])
 
   firstName        String
   lastName         String
@@ -1056,8 +1057,8 @@ model Guardian {
 
   studentLinks StudentGuardian[]
 
-  @@index([organizationId])
   @@unique([organizationId, userId])
+  @@index([organizationId])
   @@index([phone])
   @@index([email])
   @@map("guardian")
@@ -1096,8 +1097,8 @@ model StaffProfile {
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   userId         String
-  user           User        @relation(fields: [userId], references: [id])
-   
+  user           User         @relation(fields: [userId], references: [id])
+
   role            SchoolRole
   employeeId      String
   firstName       String
@@ -1188,8 +1189,8 @@ model PerformanceReview {
   reviewPeriod   String // "2025-26 Annual", "Q1 2026"
   rating         Int // 1-5
   remarks        String?
-  reviewedById     String
-  reviewedBy       User          @relation(fields: [reviewedById], references: [id])
+  reviewedById   String
+  reviewedBy     User         @relation(fields: [reviewedById], references: [id])
   reviewedAt     DateTime     @default(now())
 
   @@index([organizationId])
@@ -1210,7 +1211,9 @@ model StudentAttendance {
   date           DateTime         @db.Date
   status         AttendanceStatus
   periodId       String? // null = daily attendance; set = period-level attendance
-  markedBy       String?
+  period         Period?          @relation(fields: [periodId], references: [id])
+  markedById     String?
+  markedBy       User?            @relation(fields: [markedById], references: [id])
   biometricRef   String? // external device/scan reference, nullable
   remarks        String?
   createdAt      DateTime         @default(now())
@@ -2054,7 +2057,7 @@ model DocumentRecord {
   name           String
   fileUrl        String
   uploadedById   String
-  uploadedBy     User             @relation( fields: [uploadedById], references: [id], onDelete: Cascade)
+  uploadedBy     User             @relation(fields: [uploadedById], references: [id], onDelete: Cascade)
   uploadedAt     DateTime         @default(now())
 
   studentLink StudentDocument?

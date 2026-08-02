@@ -8,5 +8,6 @@ import { AcademicYearRepository } from '@/academic-year/academic-year.repository
   controllers: [AcademicYearController],
   providers: [AcademicYearService, AcademicYearRepository],
   imports: [PrismaModule],
+  exports: [AcademicYearService, AcademicYearRepository]
 })
 export class AcademicYearModule {}

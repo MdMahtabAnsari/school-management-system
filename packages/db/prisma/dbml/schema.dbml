@@ -34,6 +34,7 @@ Table user {
   siblingConfirmedBy siblingLink [not null]
   certificatesIssuedBy certificate [not null]
   performanceReviewedBy performanceReview [not null]
+  attendanceMarkedBy studentAttendance [not null]
 }
 
 Table session {
@@ -379,6 +380,7 @@ Table period {
   endTime String [not null]
   sequence Int [not null]
   timetableSlots timetableSlot [not null]
+  attendanceRecords studentAttendance [not null]
 
   indexes {
     (organizationId, sequence) [unique]
@@ -788,7 +790,9 @@ Table studentAttendance {
   date DateTime [not null]
   status AttendanceStatus [not null]
   periodId String
-  markedBy String
+  period period
+  markedById String
+  markedBy user
   biometricRef String
   remarks String
   createdAt DateTime [default: `now()`, not null]
@@ -1826,6 +1830,10 @@ Ref: performanceReview.reviewedById > user.id
 Ref: studentAttendance.organizationId > organization.id [delete: Cascade]
 
 Ref: studentAttendance.studentId > studentProfile.id [delete: Cascade]
+
+Ref: studentAttendance.periodId > period.id
+
+Ref: studentAttendance.markedById > user.id
 
 Ref: staffAttendance.organizationId > organization.id [delete: Cascade]
 

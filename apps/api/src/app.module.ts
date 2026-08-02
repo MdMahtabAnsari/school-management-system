@@ -39,7 +39,8 @@ import { StudentGuardianModule } from '@/student-guardian/student-guardian.modul
 import { StaffProfileModule } from '@/staff-profile/staff-profile.module';
 import { EmployeeRecordModule } from '@/employee-record/employee-record.module';
 import { StaffDocumentModule } from '@/staff-document/staff-document.module';
-import { PerformanceReviewModule } from './performance-review/performance-review.module';
+import { PerformanceReviewModule } from '@/performance-review/performance-review.module';
+import { StudentAttendanceModule } from './student-attendance/student-attendance.module';
 
 @Module({
   imports: [
@@ -92,6 +93,7 @@ import { PerformanceReviewModule } from './performance-review/performance-review
     EmployeeRecordModule,
     StaffDocumentModule,
     PerformanceReviewModule,
+    StudentAttendanceModule,
   ],
   controllers: [AppController],
   providers: [AppService],

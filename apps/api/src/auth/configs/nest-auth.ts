@@ -13,13 +13,13 @@ import {
   organization,
 } from 'better-auth/plugins';
 import { PrismaService } from '@/prisma/prisma.service';
-import { username as usernameSchema } from '@/auth/configs/common';
+import { username as usernameSchema } from '@workspace/auth/common';
 import {
   admin,
   schoolAdmin,
   user,
   ac,
-} from '@/auth/configs/permissions/admin.permission';
+} from '@workspace/auth/permissions/admin.permission';
 import {
   ac as orgAc,
   admin as orgAdmin,
@@ -39,7 +39,7 @@ import {
   supportStaff,
   student,
   guardian,
-} from '@/auth/configs/permissions/organization.permission';
+} from '@workspace/auth/permissions/organization.permission';
 import {Role,SchoolRole} from '@workspace/db/generated/prisma/cjs/enums';
 
 export const nestAuth = (prisma: PrismaService) => {

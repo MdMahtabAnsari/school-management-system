@@ -44,4 +44,12 @@ export class StaffProfileService {
         }
         return this.staffProfileRepository.updateStaffProfile(id, updateStaffProfileDto);
     }
+
+    async getStaffProfileByOrgIdAndUserId(orgId: string, userId: string) {
+        const staffProfile = await this.staffProfileRepository.getStaffProfileByOrgIdAndUserId(orgId, userId);
+        if(!staffProfile || staffProfile.deletedAt) {
+            throw new NotFoundException('Staff profile not found');
+        }
+        return staffProfile;
+    }
 }
