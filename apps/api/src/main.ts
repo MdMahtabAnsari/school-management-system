@@ -12,6 +12,11 @@ async function bootstrap() {
   });
   app.use(helmet());
   app.setGlobalPrefix('api');
+  app.enableCors({
+    origin: process.env.TRUSTED_CLIENT_URL?.split(',') || [],
+    credentials: true,
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  });
   app.useGlobalPipes(
     new ValidationPipe({
       transform: true,

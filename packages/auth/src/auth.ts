@@ -12,7 +12,8 @@ import {
   bearer,
   organization,
 } from 'better-auth/plugins';
-import { prisma } from '@workspace/db/nestjs';
+import { nextCookies } from "better-auth/next-js";
+// import { prisma } from '@workspace/db/nestjs';
 import { username as usernameSchema } from './common.js';
 import {
   admin,
@@ -41,6 +42,7 @@ import {
   guardian,
 } from './permissions/organization.permission.js';
 import {Role,SchoolRole} from '@workspace/db/generated/prisma/cjs/enums';
+import {prisma} from '@workspace/db/nextjs'
 
 export const auth = betterAuth({
   database: prismaAdapter(prisma, {
@@ -72,6 +74,7 @@ export const auth = betterAuth({
     },
   },
   plugins: [
+    nextCookies(),
     bearer(),
     emailOTP({
       async sendVerificationOTP() { },
