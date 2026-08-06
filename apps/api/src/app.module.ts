@@ -40,7 +40,12 @@ import { StaffProfileModule } from '@/staff-profile/staff-profile.module';
 import { EmployeeRecordModule } from '@/employee-record/employee-record.module';
 import { StaffDocumentModule } from '@/staff-document/staff-document.module';
 import { PerformanceReviewModule } from '@/performance-review/performance-review.module';
-import { StudentAttendanceModule } from './student-attendance/student-attendance.module';
+import { StudentAttendanceModule } from '@/student-attendance/student-attendance.module';
+import { MailerModule } from '@nestjs-modules/mailer';
+import { BullModule } from '@nestjs/bullmq';
+import { NotificationModule } from './notification/notification.module';
+import { CloudinaryModule } from './cloudinary/cloudinary.module';
+
 
 @Module({
   imports: [
@@ -60,6 +65,22 @@ import { StudentAttendanceModule } from './student-attendance/student-attendance
           }),
         }),
       ],
+    }),
+    MailerModule.forRoot({
+      transport: {
+        host: 'localhost', // or "mailpit" if running in Docker
+        port: 1025,
+        secure: false,
+        ignoreTLS: true,
+      },
+      defaults: {
+        from: '"School Management System" <noreply@example.com>',
+      },
+    }),
+    BullModule.forRoot({
+      connection: {
+        url:process.env.REDIS_URL,
+      },
     }),
     BoardModule,
     GradeLevelModule,
@@ -94,6 +115,8 @@ import { StudentAttendanceModule } from './student-attendance/student-attendance
     StaffDocumentModule,
     PerformanceReviewModule,
     StudentAttendanceModule,
+    NotificationModule,
+    CloudinaryModule,
   ],
   controllers: [AppController],
   providers: [AppService],

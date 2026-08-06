@@ -108,15 +108,23 @@ export const ac = createAccessControl(statement);
 
 // Full-access tiers -----------------------------------------------------
 
+/**
+ * SchoolRole.OWNER — the organization's original creator/highest authority.
+ * Permission surface is identical to admin/schoolAdmin, but keep it as its
+ * own role rather than aliasing: Better Auth's org plugin treats "owner" as
+ * a distinct concept internally (e.g. only an owner can delete the org or
+ * transfer ownership), independent of whatever statement permissions are
+ * granted here.
+ */
+export const owner = ac.newRole({
+  ...statement,
+});
+
 /** Platform-level (cross-org) admin. Matches Role.ADMIN. */
 export const admin = ac.newRole({
   ...statement,
 });
 
-/** SchoolRole.SCHOOL_ADMIN — full access within their own organization. */
-export const schoolAdmin = ac.newRole({
-  ...statement,
-});
 
 /**
  * SchoolRole.PRINCIPAL — near-full access; excluded from raw payroll/ledger edits.
@@ -124,9 +132,9 @@ export const schoolAdmin = ac.newRole({
  * be reused for vicePrincipal without depending on newRole()'s internal return shape.
  */
 const principalPermissions = {
-  organization: ["update"],
-  member: ["create", "update", "delete"],
-  invitation: ["create", "cancel"],
+  // organization: ["update"],
+  // member: ["create", "update", "delete"],
+  // invitation: ["create", "cancel"],
   academicStructure: ["create", "read", "update", "delete"],
   timetable: ["create", "read", "update", "delete"],
   student: ["create", "read", "update", "delete", "transfer", "promote", "manageActivities"],
@@ -320,7 +328,7 @@ export const supportStaff = ac.newRole({
  * communication:read lets a student view their own message history
  * (SMS/WhatsApp/email sent to them), separate from broadcast notices.
  */
-export const student = ac.newRole({
+export const member = ac.newRole({
   student: ["read"],
   studentAttendance: ["read"],
   exam: ["read"],

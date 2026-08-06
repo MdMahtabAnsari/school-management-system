@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { useParams, useRouter } from "next/navigation"
+import {  useRouter } from "next/navigation"
 import type { ReactNode } from "react"
 import { authClient } from "@workspace/auth/client/nextjs-client"
 import { AuthProvider } from "@/components/auth/auth-provider"
@@ -14,26 +14,42 @@ import { emailOtpPlugin } from "@/lib/auth/email-otp-plugin"
 import { multiSessionPlugin } from "@/lib/auth/multi-session-plugin"
 import { magicLinkPlugin } from "@/lib/auth/magic-link-plugin"
 import { lastLoginMethodPlugin } from "@/lib/auth/last-login-method-plugin"
-
+import { themePlugin } from "@/lib/auth/theme-plugin"
+import { useTheme } from "next-themes"
 
 export function AuthProviders({ children }: { children: ReactNode }) {
     const router = useRouter();
-    const params = useParams<{ slug?: string | string[] }>() 
-  const slug = typeof params?.slug === "string" ? params.slug : null
 
     return (
-            <AuthProvider
-                authClient={authClient}
-                redirectTo="/settings/account"
-                navigate={({ to, replace }) =>
-                    replace ? router.replace(to) : router.push(to)
+        <AuthProvider
+            authClient={authClient}
+            redirectTo="/organization/dashboard"
+            navigate={({ to, replace }) =>
+                replace ? router.replace(to) : router.push(to)
+            }
+            plugins={[adminPlugin(), organizationPlugin({
+                additionalRoles: {
+                    principal: "Principal",
+                    vicePrincipal: "Vice Principal",
+                    registrar: "Registrar",
+                    teacher: "Teacher",
+                    accountant: "Accountant",
+                    librarian: "Librarian",
+                    receptionist: "Receptionist",
+                    transportManager: "Transport Manager",
+                    hostelWarden: "Hostel Warden",
+                    nurse: "Nurse",
+                    hr: "HR",
+                    security: "Security",
+                    supportStaff: "Support Staff",
+                    guardian: "Guardian",
                 }
-                plugins={[adminPlugin(), organizationPlugin({ slug }), usernamePlugin(), twoFactorPlugin(), emailOtpPlugin(), multiSessionPlugin(), magicLinkPlugin(), lastLoginMethodPlugin()]}
-                Link={Link}
-            >
-                {children}
+            }), usernamePlugin(), twoFactorPlugin(), emailOtpPlugin(), multiSessionPlugin(), magicLinkPlugin(), lastLoginMethodPlugin(), themePlugin({ useTheme })]}
+            Link={Link}
+        >
+            {children}
 
-                <Toaster />
-            </AuthProvider>
+            <Toaster />
+        </AuthProvider>
     )
 }

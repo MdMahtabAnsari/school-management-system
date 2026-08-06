@@ -11,17 +11,19 @@ export const ac = createAccessControl(statements);
  * Super Admin
  * Full system access across all organizations.
  */
-export const admin = ac.newRole({
+export const superAdmin = ac.newRole({
   ...adminAc.statements,
 });
 
 /**
- * School Admin
- * Full access within a school/organization.
+ * Admin
+ * Full system access across all organizations.
  */
-export const schoolAdmin = ac.newRole({
+
+export const admin = ac.newRole({
   ...adminAc.statements,
 });
+
 
 /**
  * User

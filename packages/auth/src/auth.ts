@@ -16,15 +16,14 @@ import { nextCookies } from "better-auth/next-js";
 // import { prisma } from '@workspace/db/nestjs';
 import { username as usernameSchema } from './common.js';
 import {
+  superAdmin,
   admin,
-  schoolAdmin,
   user,
   ac,
 } from './permissions/admin.permission.js';
 import {
   ac as orgAc,
   admin as orgAdmin,
-  schoolAdmin as orgSchoolAdmin,
   principal,
   vicePrincipal,
   registrar,
@@ -38,11 +37,11 @@ import {
   hr,
   security,
   supportStaff,
-  student,
+  member,
   guardian,
+  owner,
 } from './permissions/organization.permission.js';
-import {Role,SchoolRole} from '@workspace/db/generated/prisma/cjs/enums';
-import {prisma} from '@workspace/db/nextjs'
+import { prisma } from '@workspace/db/nextjs'
 
 export const auth = betterAuth({
   database: prismaAdapter(prisma, {
@@ -95,12 +94,12 @@ export const auth = betterAuth({
       sendMagicLink: async () => { },
     }),
     adminPlugin({
-      defaultRole: Role.USER,
+      defaultRole: 'user',
       ac,
       roles: {
-        [Role.ADMIN]: admin,
-        [Role.SCHOOL_ADMIN]: schoolAdmin,
-        [Role.USER]: user,
+        superAdmin,
+        admin,
+        user,
       },
     }),
     lastLoginMethod(),
@@ -108,23 +107,23 @@ export const auth = betterAuth({
     organization({
       ac: orgAc,
       roles: {
-        [SchoolRole.ADMIN]: orgAdmin,
-        [SchoolRole.SCHOOL_ADMIN]: orgSchoolAdmin,
-        [SchoolRole.PRINCIPAL]: principal,
-        [SchoolRole.VICE_PRINCIPAL]: vicePrincipal,
-        [SchoolRole.REGISTRAR]: registrar,
-        [SchoolRole.TEACHER]: teacher,
-        [SchoolRole.ACCOUNTANT]: accountant,
-        [SchoolRole.LIBRARIAN]: librarian,
-        [SchoolRole.RECEPTIONIST]: receptionist,
-        [SchoolRole.TRANSPORT_MANAGER]: transportManager,
-        [SchoolRole.HOSTEL_WARDEN]: hostelWarden,
-        [SchoolRole.NURSE]: nurse,
-        [SchoolRole.HR]: hr,
-        [SchoolRole.SECURITY]: security,
-        [SchoolRole.SUPPORT_STAFF]: supportStaff,
-        [SchoolRole.STUDENT]: student,
-        [SchoolRole.GUARDIAN]: guardian,
+        owner,
+        admin: orgAdmin,
+        principal,
+        vicePrincipal,
+        registrar,
+        teacher,
+        accountant,
+        librarian,
+        receptionist,
+        transportManager,
+        hostelWarden,
+        nurse,
+        hr,
+        security,
+        supportStaff,
+        member,
+        guardian,
       },
       dynamicAccessControl: {
         enabled: true,
@@ -133,6 +132,11 @@ export const auth = betterAuth({
         enabled: true,
 
       },
+      allowUserToCreateOrganization: async (user) => {
+        return user.role === 'admin';
+      },
+       organizationHooks: {
+       }
     }),
   ],
   session: {

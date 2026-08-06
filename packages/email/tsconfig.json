@@ -1,0 +1,10 @@
+{
+  "extends": "@workspace/typescript-config/base.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "rootDir": "emails",
+    "jsx": "react-jsx",
+  },
+  "include": ["emails"],
+  "exclude": ["node_modules", "dist"]
+}

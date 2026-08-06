@@ -1,0 +1,28 @@
+{
+  "name": "@workspace/api-client",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc"
+  },
+  "type": "module",
+  "devDependencies": {
+    "@types/node": "^26.1.2",
+    "@workspace/typescript-config": "workspace:*",
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "@workspace/auth": "workspace:*",
+    "@workspace/contract": "workspace:*",
+    "axios": "^1.19.0",
+    "dotenv": "^17.4.2"
+  },
+  "exports": {
+    "./*": {
+      "types": "./src/*.ts",
+      "default": "./dist/*.js"
+    }
+  }
+  
+}

@@ -25,6 +25,7 @@ generator dbml {
   projectDatabaseType = "PostgreSQL"
 }
 
+
 // ============================================================================
 // SECTION 0: BETTER AUTH FOUNDATION (unmodified — do not redesign)
 // ============================================================================
@@ -40,7 +41,7 @@ model User {
   twoFactorEnabled Boolean?     @default(false)
   username         String?
   displayUsername  String?
-  role             Role?
+  role             String?
   banned           Boolean?     @default(false)
   banReason        String?
   banExpires       DateTime?
@@ -64,6 +65,7 @@ model User {
   certificatesIssuedBy    Certificate[]
   performanceReviewedBy   PerformanceReview[]
   attendanceMarkedBy      StudentAttendance[]
+
 
   @@unique([email])
   @@unique([username])
@@ -136,8 +138,6 @@ model TwoFactor {
   @@map("twoFactor")
 }
 
-/// One Organization = One School. Every tenant-scoped model carries organizationId.
-
 model Organization {
   id                String             @id
   name              String
@@ -208,7 +208,7 @@ model OrganizationRole {
   id             String       @id
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  role           SchoolRole
+  role           String
   permission     String
   createdAt      DateTime     @default(now())
   updatedAt      DateTime?    @updatedAt
@@ -250,7 +250,7 @@ model Member {
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   userId         String
   user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  role           SchoolRole   @default(STUDENT)
+  role           String       @default("member")
   createdAt      DateTime
 
   @@index([organizationId])
@@ -263,7 +263,7 @@ model Invitation {
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   email          String
-  role           SchoolRole?
+  role           String?
   teamId         String?
   status         String       @default("pending")
   expiresAt      DateTime
@@ -276,40 +276,6 @@ model Invitation {
   @@map("invitation")
 }
 
-// ============================================================================
-// SECTION 1: CORE ENUMS
-// ============================================================================
-
-// Role
-
-enum Role {
-  ADMIN
-  SCHOOL_ADMIN
-  USER
-}
-
-/// School-specific roles layered onto Better Auth's Member.role (string).
-/// These are used by CustomRole/RolePermission for fine-grained RBAC checks.
-
-enum SchoolRole {
-  ADMIN
-  SCHOOL_ADMIN
-  PRINCIPAL
-  VICE_PRINCIPAL
-  REGISTRAR
-  TEACHER
-  ACCOUNTANT
-  LIBRARIAN
-  RECEPTIONIST
-  TRANSPORT_MANAGER
-  HOSTEL_WARDEN
-  NURSE
-  HR
-  SECURITY
-  SUPPORT_STAFF
-  STUDENT
-  GUARDIAN
-}
 
 enum Gender {
   MALE
@@ -1099,7 +1065,7 @@ model StaffProfile {
   userId         String
   user           User         @relation(fields: [userId], references: [id])
 
-  role            SchoolRole
+  role            String
   employeeId      String
   firstName       String
   lastName        String
@@ -2109,3 +2075,4 @@ model AuditLog {
   @@index([organizationId, createdAt])
   @@map("auditLog")
 }
+

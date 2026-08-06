@@ -15,15 +15,14 @@ import {
 import { PrismaService } from '@/prisma/prisma.service';
 import { username as usernameSchema } from '@workspace/auth/common';
 import {
+  superAdmin,
   admin,
-  schoolAdmin,
   user,
   ac,
 } from '@workspace/auth/permissions/admin.permission';
 import {
   ac as orgAc,
   admin as orgAdmin,
-  schoolAdmin as orgSchoolAdmin,
   principal,
   vicePrincipal,
   registrar,
@@ -37,12 +36,15 @@ import {
   hr,
   security,
   supportStaff,
-  student,
+  member,
   guardian,
+  owner,
 } from '@workspace/auth/permissions/organization.permission';
-import {Role,SchoolRole} from '@workspace/db/generated/prisma/cjs/enums';
+import { EmailQueueService } from '@/notification/email-queue.service';
+import { APIError } from "better-auth/api";
 
-export const nestAuth = (prisma: PrismaService) => {
+
+export const nestAuth = (prisma: PrismaService, emailQueueService: EmailQueueService) => {
   return betterAuth({
     database: prismaAdapter(prisma, {
       provider: 'postgresql',
@@ -50,19 +52,27 @@ export const nestAuth = (prisma: PrismaService) => {
     user: {
       changeEmail: {
         enabled: true,
-        sendChangeEmailVerification: async () => { },
+        sendChangeEmailVerification: async ({ user, newEmail, url }) => {
+          await emailQueueService.changeEmail({ user, url, email: newEmail });
+        },
       },
     },
     emailAndPassword: {
       requireEmailVerification: true,
       enabled: true,
-      sendResetPassword: async () => { },
+      sendResetPassword: async ({ user, url }) => {
+        await emailQueueService.resetPassword({ user, url });
+      },
     },
     emailVerification: {
-      sendVerificationEmail: async () => { },
+      sendVerificationEmail: async ({ user, url }) => {
+        await emailQueueService.verificationEmail({ user, url });
+      },
       sendOnSignUp: true,
       autoSignInAfterVerification: true,
-      afterEmailVerification: async () => { },
+      afterEmailVerification: async (user) => {
+        await emailQueueService.welcomeEmail({ user });
+      },
     },
     account: {
       accountLinking: {
@@ -72,13 +82,28 @@ export const nestAuth = (prisma: PrismaService) => {
     plugins: [
       bearer(),
       emailOTP({
-        async sendVerificationOTP() { },
+        async sendVerificationOTP({ email, otp, type }) {
+          if (type === 'sign-in') {
+            await emailQueueService.signInOTP({ email, otp });
+          } else if (type === 'email-verification') {
+            await emailQueueService.emailVerificationOTP({ email, otp });
+          }
+          else if (type === 'forget-password') {
+            await emailQueueService.forgotPasswordOTP({ email, otp });
+          }
+          else {
+            await emailQueueService.changeEmailOTP({ email, otp });
+          }
+
+        },
       }),
       multiSession(),
       twoFactor({
-        issuer: 'vaultkey',
+        issuer: 'School Management System',
         otpOptions: {
-          sendOTP: async () => { },
+          sendOTP: async ({ user, otp }) => {
+            await emailQueueService.OTPEmail({ user, otp });
+          },
         },
       }),
       username({
@@ -87,48 +112,166 @@ export const nestAuth = (prisma: PrismaService) => {
         },
       }),
       magicLink({
-        sendMagicLink: async () => { },
+        sendMagicLink: async ({ email, url }) => {
+          await emailQueueService.magicLink({ email, url });
+        },
       }),
       adminPlugin({
-      defaultRole: Role.USER,
-      ac,
-      roles: {
-        [Role.ADMIN]: admin,
-        [Role.SCHOOL_ADMIN]: schoolAdmin,
-        [Role.USER]: user,
-      },
-    }),
+        defaultRole: 'user',
+        ac,
+        roles: {
+          superAdmin,
+          admin,
+          user,
+        },
+      }),
       lastLoginMethod(),
       ...(process.env.NODE_ENV === 'development' ? [openAPI()] : []),
       organization({
-            ac: orgAc,
-            roles: {
-              [SchoolRole.ADMIN]: orgAdmin,
-              [SchoolRole.SCHOOL_ADMIN]: orgSchoolAdmin,
-              [SchoolRole.PRINCIPAL]: principal,
-              [SchoolRole.VICE_PRINCIPAL]: vicePrincipal,
-              [SchoolRole.REGISTRAR]: registrar,
-              [SchoolRole.TEACHER]: teacher,
-              [SchoolRole.ACCOUNTANT]: accountant,
-              [SchoolRole.LIBRARIAN]: librarian,
-              [SchoolRole.RECEPTIONIST]: receptionist,
-              [SchoolRole.TRANSPORT_MANAGER]: transportManager,
-              [SchoolRole.HOSTEL_WARDEN]: hostelWarden,
-              [SchoolRole.NURSE]: nurse,
-              [SchoolRole.HR]: hr,
-              [SchoolRole.SECURITY]: security,
-              [SchoolRole.SUPPORT_STAFF]: supportStaff,
-              [SchoolRole.STUDENT]: student,
-              [SchoolRole.GUARDIAN]: guardian,
-            },
-            dynamicAccessControl: {
-              enabled: true,
-            },
-            teams: {
-              enabled: true,
-      
-            },
-          }),
+        ac: orgAc,
+        roles: {
+          owner,
+          admin: orgAdmin,
+          principal,
+          vicePrincipal,
+          registrar,
+          teacher,
+          accountant,
+          librarian,
+          receptionist,
+          transportManager,
+          hostelWarden,
+          nurse,
+          hr,
+          security,
+          supportStaff,
+          member,
+          guardian,
+        },
+        dynamicAccessControl: {
+          enabled: true,
+        },
+        teams: {
+          enabled: true,
+
+        },
+        allowUserToCreateOrganization: async (user) => {
+          return user.role === 'superAdmin';
+        },
+
+        organizationHooks: {
+          beforeCreateInvitation: async ({
+            invitation,
+            inviter,
+            organization,
+          }) => {
+
+
+            if (invitation.role === 'owner') {
+              throw new APIError("FORBIDDEN", {
+                message: "You cannot invite a user with owner role",
+              });
+            }
+            else if (invitation.role === 'member') {
+              const studentCount = await prisma.studentProfile.count({
+                where: {
+                  organizationId: organization.id,
+                  user: {
+                    email: invitation.email
+                  }
+                },
+              });
+              if (studentCount === 0) {
+                throw new APIError("FORBIDDEN", {
+                  message: "A matching profile must exist in this organization before an invitation can be sent.",
+                });
+              }
+            }
+            else if (invitation.role === 'guardian') {
+              const studentCount = await prisma.guardian.count({
+                where: {
+                  organizationId: organization.id,
+                  user: {
+                    email: invitation.email
+                  }
+                },
+              });
+              if (studentCount === 0) {
+                throw new APIError("FORBIDDEN", {
+                  message: "A matching profile must exist in this organization before an invitation can be sent.",
+                });
+              }
+
+            }
+            else {
+              const staffCount = await prisma.staffProfile.count({
+                where: {
+                  organizationId: organization.id,
+                  role: invitation.role,
+                  user: {
+                    email: invitation.email
+                  }
+                },
+              });
+              if (staffCount === 0) {
+                throw new APIError("FORBIDDEN", {
+                  message: "A matching profile must exist in this organization before an invitation can be sent.",
+                });
+              }
+            }
+
+          },
+
+          beforeAcceptInvitation: async ({ invitation, user, organization }) => {
+            if (invitation.role === 'owner') {
+              throw new APIError("FORBIDDEN", {
+                message: "You cannot accept an invitation with owner role",
+              });
+            }
+            if (invitation.role === 'member') {
+              const studentCount = await prisma.studentProfile.count({
+                where: {
+                  organizationId: organization.id,
+                  userId: user.id
+                },
+              });
+              if (studentCount === 0) {
+                throw new APIError("FORBIDDEN", {
+                  message: "You must have a matching student profile in this organization to accept the invitation.",
+                });
+              }
+            }
+            else if (invitation.role === 'guardian') {
+              const studentCount = await prisma.guardian.count({
+                where: {
+                  organizationId: organization.id,
+                  userId: user.id
+                },
+              });
+              if (studentCount === 0) {
+                throw new APIError("FORBIDDEN", {
+                  message: "You must have a matching guardian profile in this organization to accept the invitation.",
+                });
+              }
+            }
+            else {
+              const staffCount = await prisma.staffProfile.count({
+                where: {
+                  organizationId: organization.id,
+                  role: invitation.role,
+                  userId: user.id
+                },
+              });
+              if (staffCount === 0) {
+                throw new APIError("FORBIDDEN", {
+                  message: "You must have a matching staff profile in this organization to accept the invitation.",
+                });
+              }
+            }
+          }
+        }
+
+      }),
     ],
     session: {
       cookieCache: {

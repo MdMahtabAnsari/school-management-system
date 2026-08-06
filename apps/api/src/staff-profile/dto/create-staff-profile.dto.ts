@@ -1,7 +1,8 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsString, IsNotEmpty, IsOptional, IsEmail, IsPhoneNumber, IsUrl, IsDateString, IsEnum, IsInt, IsUUID, Min } from "class-validator";
-import { SchoolRole, Gender, EmploymentStatus } from '@workspace/db/generated/prisma/cjs/enums';
+import { IsString, IsNotEmpty, IsOptional, IsEmail, IsPhoneNumber, IsUrl, IsDateString, IsEnum, IsInt, Min } from "class-validator";
+import {  Gender, EmploymentStatus } from '@workspace/db/generated/prisma/cjs/enums';
 import { Type } from "class-transformer";
+import {Role} from '@/staff-profile/dto/role-enum.dto'
 
 
 
@@ -18,12 +19,13 @@ export class CreateStaffProfileDto {
 
     @ApiProperty({
         description: 'The role of the staff member in the school',
-        enum: SchoolRole,
-        example: SchoolRole.TEACHER
+        enum: Role,
+        example: Role.TEACHER
+        
     })
     @IsNotEmpty()
-    @IsEnum(SchoolRole)
-    role!: SchoolRole;
+    @IsEnum(Role)
+    role!: Role;
 
     @ApiProperty({
         description: 'The employee ID assigned to the staff member',

@@ -13,7 +13,7 @@ Table user {
   twoFactorEnabled Boolean [default: false]
   username String [unique]
   displayUsername String
-  role Role
+  role String
   banned Boolean [default: false]
   banReason String
   banExpires DateTime
@@ -154,7 +154,7 @@ Table organizationRole {
   id String [pk]
   organizationId String [not null]
   organization organization [not null]
-  role SchoolRole [not null]
+  role String [not null]
   permission String [not null]
   createdAt DateTime [default: `now()`, not null]
   updatedAt DateTime
@@ -185,7 +185,7 @@ Table member {
   organization organization [not null]
   userId String [not null]
   user user [not null]
-  role SchoolRole [not null, default: 'STUDENT']
+  role String [not null, default: 'member']
   createdAt DateTime [not null]
 }
 
@@ -194,7 +194,7 @@ Table invitation {
   organizationId String [not null]
   organization organization [not null]
   email String [not null]
-  role SchoolRole
+  role String
   teamId String
   status String [not null, default: 'pending']
   expiresAt DateTime [not null]
@@ -702,7 +702,7 @@ Table staffProfile {
   organization organization [not null]
   userId String [not null]
   user user [not null]
-  role SchoolRole [not null]
+  role String [not null]
   employeeId String [not null]
   firstName String [not null]
   lastName String [not null]
@@ -1474,32 +1474,6 @@ Table auditLog {
   entityId String [not null]
   changesJson String
   createdAt DateTime [default: `now()`, not null]
-}
-
-Enum Role {
-  ADMIN
-  SCHOOL_ADMIN
-  USER
-}
-
-Enum SchoolRole {
-  ADMIN
-  SCHOOL_ADMIN
-  PRINCIPAL
-  VICE_PRINCIPAL
-  REGISTRAR
-  TEACHER
-  ACCOUNTANT
-  LIBRARIAN
-  RECEPTIONIST
-  TRANSPORT_MANAGER
-  HOSTEL_WARDEN
-  NURSE
-  HR
-  SECURITY
-  SUPPORT_STAFF
-  STUDENT
-  GUARDIAN
 }
 
 Enum Gender {
