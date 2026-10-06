@@ -15,7 +15,7 @@
   "dependencies": {
     "@workspace/auth": "workspace:*",
     "@workspace/contract": "workspace:*",
-    "axios": "^1.19.0",
+    "axios": "^1.20.0",
     "dotenv": "^17.4.2"
   },
   "exports": {
