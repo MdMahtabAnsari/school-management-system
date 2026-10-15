@@ -41,7 +41,7 @@
     "@workspace/contract": "workspace:*",
     "@workspace/ui": "workspace:*",
     "@workspace/api-client": "workspace:*",
-    "axios": "^1.19.0",
+    "axios": "^1.20.0",
     "better-auth": "^1.6.25",
     "bowser": "^2.14.1",
     "class-variance-authority": "^0.7.1",
